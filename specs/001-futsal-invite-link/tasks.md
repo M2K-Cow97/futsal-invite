@@ -151,7 +151,7 @@ T030(명단)은 P2 로, 없어도 초대는 성립한다.
 | `npx tsc --noEmit` | 통과 |
 | `npx next build` | 통과 — 8개 라우트, First Load JS 103kB |
 | `npm test` (계약) | **22/22 통과** (PGlite = 실제 Postgres 18) |
-| `npm run test:e2e` | **12/12 통과** (mobile 터치 390px + desktop 1280px, 2건은 데스크톱에서 skip) |
+| `npm run test:e2e` | **18/18 통과** (mobile 터치 390px + desktop 1280px, 2건은 데스크톱에서 skip) |
 | API 수동 확인 | 생성·조회·upsert·404 전부 기대대로 |
 
 E2E 가 검증한 핵심 불변식:
@@ -182,3 +182,26 @@ E2E 가 검증한 핵심 불변식:
 
 회귀 방지용 모바일 전용 E2E 2건을 추가했다 (`tests/e2e/flow.spec.ts` 의 `모바일 터치` describe).
 Playwright `mobile` 프로젝트도 `hasTouch: true` 로 바꿔 앞으로는 터치 조건에서 검증된다.
+
+---
+
+## 추가 기능: 거절 관문 (2026-08-22)
+
+모바일에는 hover 가 없어 도망가는 버튼만으로는 재미가 약하다는 피드백을 받아
+회피 3회 이후 4단계 미니게임이 거절을 막는 구조를 추가했다.
+
+- [x] **T038** `components/reject/types.ts` · `RejectShell.tsx` — 공용 타입과 팝업 껍데기
+- [x] **T039** `LeverStage.tsx` — 정밀 레버. 87.00 달성 시 "달성" → "재교정" 배신,
+  손 뗄 때 흔들림(가까울수록 크게)
+- [x] **T040** [P] `FreekickStage.tsx` — 파워 게이지 왕복 + 항상 실패. 핑계 6종 랜덤
+- [x] **T041** [P] `KeypadStage.tsx` — 메시 집 버튼키. 항상 오답, 힌트 자리수가 매번 바뀜
+- [x] **T042** [P] `TermsStage.tsx` — 장문 약관. 끝에 닿으면 조항 +25 & 위로 튕김,
+  3회 후 "동의 버튼이 존재하지 않습니다". 체크박스 영구 비활성
+- [x] **T043** `RejectGauntlet.tsx` — 4단계 순서 컨트롤러
+- [x] **T044** `InviteScreen.tsx` 연결 — 회피 3회 후 도망 중단, "포기해." 탭 시 관문 오픈
+- [x] **T045** `app/globals.css` — 미니게임 4종 스타일 (피치·게이지·키패드·약관)
+- [x] **T046** E2E 3건 추가 — 레버 배신, 프리킥 항상 실패, 약관 체크박스 영구 비활성
+
+검증: E2E **18/18 통과**, 계약 22/22 유지, 빌드 통과
+(`/i/[slug]` First Load JS 106kB → 110kB, 미니게임 4종 추가분 3.6kB).
+4단계 전부 성공 경로가 없음을 실제 플레이로 확인했다 (레버 87.00 → 48.05 리셋 등).

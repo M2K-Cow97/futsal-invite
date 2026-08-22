@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { RejectGauntlet } from '../reject/RejectGauntlet';
 
 const FLEE_LIMIT = 3;
 const GIVE_UP_LABEL = '포기해.';
@@ -36,12 +37,16 @@ export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccep
   const noBtnRef = useRef<HTMLButtonElement>(null);
   const yesBtnRef = useRef<HTMLButtonElement>(null);
   const fleeingRef = useRef(false);
+  const fleeCountRef = useRef(0);
 
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [fleeCount, setFleeCount] = useState(0);
   const [kick, setKick] = useState<{ x: number; y: number; id: number } | null>(null);
+  const [gauntlet, setGauntlet] = useState(false);
 
   const flee = useCallback(() => {
+    // 도망 단계를 지나면 더는 피하지 않고 거절 관문이 막아선다.
+    if (fleeCountRef.current >= FLEE_LIMIT) return;
     // 모바일에서 touchstart → click 이 연달아 오는 경우를 막는다.
     if (fleeingRef.current) return;
     fleeingRef.current = true;
@@ -93,7 +98,8 @@ export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccep
     }
 
     setPos(next);
-    setFleeCount((n) => n + 1);
+    fleeCountRef.current += 1;
+    setFleeCount(fleeCountRef.current);
 
     // 이동 트랜지션(260ms)이 끝난 뒤 다시 잡을 수 있게 한다.
     window.setTimeout(() => {
@@ -169,6 +175,10 @@ export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccep
           onClick={(e) => {
             // 어떤 경로로도 거절이 성립하지 않게 한다.
             e.preventDefault();
+            if (fleeCountRef.current >= FLEE_LIMIT) {
+              setGauntlet(true);
+              return;
+            }
             flee();
           }}
         >
@@ -177,10 +187,13 @@ export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccep
 
         {fleeCount > 0 && (
           <p className="flee-count">
-            {fleeCount}번 시도… {fleeCount >= FLEE_LIMIT ? '이제 포기하세요 🐐' : '계속 해보세요'}
+            {fleeCount}번 시도…{' '}
+            {fleeCount >= FLEE_LIMIT ? '눌러보세요, 심사해 드립니다 🐐' : '계속 해보세요'}
           </p>
         )}
       </div>
+
+      {gauntlet && <RejectGauntlet onClose={() => setGauntlet(false)} />}
     </div>
   );
 }

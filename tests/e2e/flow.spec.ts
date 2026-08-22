@@ -156,9 +156,10 @@ test.describe('모바일 터치', () => {
     const no = page.locator('.invite-no');
     const yes = page.locator('.invite-yes');
 
-    for (let i = 0; i < 15; i++) {
+    // 도망은 FLEE_LIMIT(3)회까지. 그 뒤엔 거절 관문이 열리므로 3회 안에서 검증한다.
+    for (let i = 0; i < 3; i++) {
       await no.tap();
-      await page.waitForTimeout(320);
+      await page.waitForTimeout(400);
 
       const n = await no.boundingBox();
       const y = await yes.boundingBox();
@@ -173,7 +174,7 @@ test.describe('모바일 터치', () => {
       expect(overlapping, `${i + 1}회차에서 "좋아!" 와 겹쳤다`).toBe(false);
     }
 
-    // 15회 도망친 뒤에도 수락은 가능해야 한다.
+    // 도망친 뒤에도 수락은 가능해야 한다.
     await yes.tap();
     await expect(page.getByText(/좋siuuuuu/)).toBeVisible();
   });
@@ -183,12 +184,131 @@ test.describe('모바일 터치', () => {
     await page.goto(inviteUrl);
 
     const no = page.locator('.invite-no');
-    // 문구가 나타난 뒤에도 계속 탭이 먹혀야 한다 (pointer-events: none).
-    for (let i = 0; i < 20; i++) {
+    // 카운터 문구가 나타난 뒤에도 탭이 계속 먹혀야 한다 (pointer-events: none).
+    for (let i = 0; i < 3; i++) {
       await no.tap({ timeout: 3000 });
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(400);
     }
     await expect(no).toHaveText('포기해.');
+
+    // 도망이 끝나면 탭이 거절 관문을 연다 — 여기서도 탭이 막히면 안 된다.
+    await no.tap({ timeout: 3000 });
+    await expect(page.locator('.lever-slider')).toBeVisible();
+  });
+});
+
+/**
+ * 거절 관문(미니게임) 회귀 테스트.
+ * 4단계 전부 "깰 수 있어 보이지만 절대 못 깬다" 가 핵심이므로,
+ * 각 단계가 성공 경로를 내주지 않는지 확인한다.
+ */
+test.describe('거절 관문', () => {
+  /** 도망 3회 후 "포기해." 를 눌러 관문을 연다. */
+  async function openGauntlet(page: import('@playwright/test').Page) {
+    const { inviteUrl } = await createInvite(page);
+    await page.goto(inviteUrl);
+
+    const no = page.locator('.invite-no');
+    for (let i = 0; i < 3; i++) {
+      const box = await no.boundingBox();
+      if (!box) break;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.waitForTimeout(420);
+    }
+    await expect(no).toHaveText('포기해.');
+    await no.click({ force: true });
+    await expect(page.locator('.lever-slider')).toBeVisible();
+  }
+
+  /** 슬라이더를 특정 값에 놓고 손을 뗀다. */
+  async function setLever(page: import('@playwright/test').Page, v: number) {
+    await page.locator('.lever-slider').evaluate((el, val) => {
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )!.set!;
+      setter.call(el, String(val));
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }, v);
+    await page.evaluate(() =>
+      document
+        .querySelector('.lever-slider')!
+        .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })),
+    );
+    await page.evaluate(() =>
+      window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })),
+    );
+  }
+
+  test('① 레버: 목표값에 정확히 맞춰도 달성 직전 배신당한다', async ({ page }) => {
+    await openGauntlet(page);
+
+    await setLever(page, 87.0);
+    // 일단 "달성" 을 보여준다 — 이게 킹받는 지점이다.
+    await expect(page.locator('.lever-msg')).toContainText('달성');
+    // 그리고 곧 재교정으로 뒤집는다.
+    await expect(page.locator('.lever-msg.bad')).toContainText('재교정');
+    // 값이 목표에서 벗어난다.
+    await expect(page.locator('.lever-value')).not.toHaveText('87.00', { timeout: 4000 });
+  });
+
+  test('② 프리킥: 어떤 파워로도 골이 인정되지 않는다', async ({ page }) => {
+    await openGauntlet(page);
+    for (let i = 0; i < 4; i++) {
+      await setLever(page, 20 + i);
+      await page.waitForTimeout(320);
+    }
+    await page.getByRole('button', { name: '다른 방법으로 거절' }).click();
+    await expect(page.locator('.pitch')).toBeVisible();
+
+    for (let i = 0; i < 3; i++) {
+      await page.getByRole('button', { name: /슛/ }).click();
+      // 매번 실패 사유가 나온다.
+      await expect(page.locator('.lever-msg.bad')).toBeVisible({ timeout: 4000 });
+      const retry = page.getByRole('button', { name: '다시 차기' });
+      if (i < 2) await retry.click();
+    }
+    await expect(page.getByRole('button', { name: '다른 방법으로 거절' })).toBeVisible();
+  });
+
+  test('④ 약관: 끝까지 읽어도 동의 체크박스가 활성화되지 않는다', async ({ page }) => {
+    await openGauntlet(page);
+    for (let i = 0; i < 4; i++) {
+      await setLever(page, 20 + i);
+      await page.waitForTimeout(320);
+    }
+    await page.getByRole('button', { name: '다른 방법으로 거절' }).click();
+    for (let i = 0; i < 3; i++) {
+      await page.getByRole('button', { name: /슛/ }).click();
+      await page.waitForTimeout(1150);
+      const retry = page.getByRole('button', { name: '다시 차기' });
+      if (await retry.isVisible()) await retry.click();
+    }
+    await page.getByRole('button', { name: '다른 방법으로 거절' }).click();
+
+    // 키패드: 4회 틀리면 다음으로
+    for (let i = 0; i < 4; i++) {
+      for (const d of ['1', '2', '3']) {
+        await page.locator('.keypad-key').filter({ hasText: new RegExp(`^${d}$`) }).first().click();
+      }
+      await page.locator('.keypad-key.ok').click();
+      await page.waitForTimeout(950);
+    }
+    await page.getByRole('button', { name: '다른 방법으로 거절' }).click();
+    await expect(page.locator('.terms-box')).toBeVisible();
+
+    // 끝까지 스크롤해도 체크박스는 끝내 비활성이다.
+    for (let i = 0; i < 4; i++) {
+      await page.locator('.terms-box').evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+      });
+      await page.waitForTimeout(720);
+    }
+    await expect(page.locator('.terms-agree input')).toBeDisabled();
+
+    // 결국 거절은 성립하지 않고 invite 화면으로 돌아온다.
+    await page.locator('.modal-actions .btn').first().click();
     await expect(page.getByRole('heading', { name: /나랑 풋살할래/ })).toBeVisible();
+    await expect(page.locator('.invite-yes')).toBeEnabled();
   });
 });
