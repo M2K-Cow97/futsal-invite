@@ -140,3 +140,55 @@ test('잘못된 관리 링크는 404 안내 화면을 보여준다', async ({ pa
   await page.goto('/m/definitely-not-a-real-token');
   await expect(page.getByRole('heading', { name: /잘못된 관리 링크/ })).toBeVisible();
 });
+
+/**
+ * 모바일 터치 전용 회귀 테스트.
+ * hover 가 없는 환경에서 "싫어." 버튼이 (a) "좋아!" 를 덮어 수락을 막거나
+ * (b) 카운터 문구에 가려 탭이 안 먹는 문제가 있었다. 둘 다 게임을 멈춰버린다.
+ */
+test.describe('모바일 터치', () => {
+  test.skip(({ isMobile }) => !isMobile, '터치 환경 전용');
+
+  test('"싫어." 버튼이 "좋아!" 를 덮지 않는다', async ({ page }) => {
+    const { inviteUrl } = await createInvite(page);
+    await page.goto(inviteUrl);
+
+    const no = page.locator('.invite-no');
+    const yes = page.locator('.invite-yes');
+
+    for (let i = 0; i < 15; i++) {
+      await no.tap();
+      await page.waitForTimeout(320);
+
+      const n = await no.boundingBox();
+      const y = await yes.boundingBox();
+      if (!n || !y) throw new Error('버튼을 찾을 수 없습니다');
+
+      const overlapping = !(
+        n.x + n.width < y.x ||
+        y.x + y.width < n.x ||
+        n.y + n.height < y.y ||
+        y.y + y.height < n.y
+      );
+      expect(overlapping, `${i + 1}회차에서 "좋아!" 와 겹쳤다`).toBe(false);
+    }
+
+    // 15회 도망친 뒤에도 수락은 가능해야 한다.
+    await yes.tap();
+    await expect(page.getByText(/좋siuuuuu/)).toBeVisible();
+  });
+
+  test('카운터 문구가 버튼 탭을 삼키지 않는다', async ({ page }) => {
+    const { inviteUrl } = await createInvite(page);
+    await page.goto(inviteUrl);
+
+    const no = page.locator('.invite-no');
+    // 문구가 나타난 뒤에도 계속 탭이 먹혀야 한다 (pointer-events: none).
+    for (let i = 0; i < 20; i++) {
+      await no.tap({ timeout: 3000 });
+      await page.waitForTimeout(300);
+    }
+    await expect(no).toHaveText('포기해.');
+    await expect(page.getByRole('heading', { name: /나랑 풋살할래/ })).toBeVisible();
+  });
+});

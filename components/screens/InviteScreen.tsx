@@ -1,20 +1,40 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const FLEE_LIMIT = 3;
 const GIVE_UP_LABEL = '포기해.';
 const INITIAL_LABEL = '싫어.';
 
+/** "좋아!" 버튼 주변으로는 도망가지 않게 둘 여유 간격(px). */
+const SAFE_GAP = 10;
+/** 터치 환경에서 손가락이 이 거리 안으로 들어오면 닿기 전에 피한다. */
+const TOUCH_SENSE_RADIUS = 46;
+
+type Box = { x: number; y: number; w: number; h: number };
+
+function overlaps(a: Box, b: Box, gap: number): boolean {
+  return !(
+    a.x + a.w + gap < b.x ||
+    b.x + b.w + gap < a.x ||
+    a.y + a.h + gap < b.y ||
+    b.y + b.h + gap < a.y
+  );
+}
+
 /**
  * ① invite — "나랑 풋살할래? ⚽"
  *
- * "싫어." 버튼은 마우스를 올리거나(데스크톱) 터치하면(모바일) 호날두 킥에 맞아
- * 컨테이너 안 랜덤 좌표로 도망간다. 정상적인 클릭으로는 절대 눌리지 않는다 (spec SC-004).
+ * "싫어." 버튼은 호날두 킥에 맞아 도망간다. 정상적인 클릭으로는 절대 눌리지 않는다 (spec SC-004).
+ *
+ * 데스크톱은 hover 로 피하지만 모바일에는 hover 가 없다. 그래서 터치 환경에서는
+ * 아레나 전체의 touchmove 를 보고 손가락이 가까워지면 닿기 전에 피한다 —
+ * 목업의 "누르려 하면 도망간다" 느낌을 모바일에서도 살리기 위함이다.
  */
 export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccept: () => void }) {
   const arenaRef = useRef<HTMLDivElement>(null);
   const noBtnRef = useRef<HTMLButtonElement>(null);
+  const yesBtnRef = useRef<HTMLButtonElement>(null);
   const fleeingRef = useRef(false);
 
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -28,14 +48,15 @@ export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccep
 
     const arena = arenaRef.current;
     const btn = noBtnRef.current;
+    const yes = yesBtnRef.current;
     if (!arena || !btn) {
       fleeingRef.current = false;
       return;
     }
 
-    // 킥 이모지를 현재 버튼 위치 왼쪽에 띄운다.
     const arenaBox = arena.getBoundingClientRect();
     const btnBox = btn.getBoundingClientRect();
+
     setKick({
       x: btnBox.left - arenaBox.left - 34,
       y: btnBox.top - arenaBox.top,
@@ -45,7 +66,33 @@ export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccep
     // 버튼 크기를 뺀 범위에서 좌표를 뽑아 컨테이너를 벗어나지 않게 한다.
     const maxX = Math.max(0, arena.clientWidth - btn.offsetWidth);
     const maxY = Math.max(0, arena.clientHeight - btn.offsetHeight);
-    setPos({ x: Math.random() * maxX, y: Math.random() * maxY });
+
+    // "좋아!" 를 덮으면 수락 자체가 막힌다. 겹치지 않는 자리를 찾는다.
+    const yesRect = yes?.getBoundingClientRect();
+    const forbidden: Box | null = yesRect
+      ? {
+          x: yesRect.left - arenaBox.left,
+          y: yesRect.top - arenaBox.top,
+          w: yesRect.width,
+          h: yesRect.height,
+        }
+      : null;
+
+    let next = { x: Math.random() * maxX, y: Math.random() * maxY };
+    if (forbidden) {
+      for (let i = 0; i < 24; i++) {
+        const candidate: Box = { x: next.x, y: next.y, w: btn.offsetWidth, h: btn.offsetHeight };
+        if (!overlaps(candidate, forbidden, SAFE_GAP)) break;
+        next = { x: Math.random() * maxX, y: Math.random() * maxY };
+      }
+      // 24번 안에 못 찾으면(아레나가 매우 좁은 경우) 아레나 최하단으로 밀어낸다.
+      const last: Box = { x: next.x, y: next.y, w: btn.offsetWidth, h: btn.offsetHeight };
+      if (overlaps(last, forbidden, SAFE_GAP)) {
+        next = { x: Math.random() * maxX, y: maxY };
+      }
+    }
+
+    setPos(next);
     setFleeCount((n) => n + 1);
 
     // 이동 트랜지션(260ms)이 끝난 뒤 다시 잡을 수 있게 한다.
@@ -54,6 +101,31 @@ export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccep
       setKick(null);
     }, 300);
   }, []);
+
+  /**
+   * 터치 환경 전용: 손가락이 버튼 근처로 오면 닿기 전에 피한다.
+   * hover 가 있는 기기에서는 등록하지 않는다 (마우스는 onMouseEnter 로 충분).
+   */
+  useEffect(() => {
+    const arena = arenaRef.current;
+    if (!arena) return;
+    if (window.matchMedia('(hover: hover)').matches) return;
+
+    function onTouchMove(e: TouchEvent) {
+      const btn = noBtnRef.current;
+      const touch = e.touches[0];
+      if (!btn || !touch) return;
+
+      const r = btn.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dist = Math.hypot(touch.clientX - cx, touch.clientY - cy);
+      if (dist < TOUCH_SENSE_RADIUS) flee();
+    }
+
+    arena.addEventListener('touchmove', onTouchMove, { passive: true });
+    return () => arena.removeEventListener('touchmove', onTouchMove);
+  }, [flee]);
 
   const label = fleeCount >= FLEE_LIMIT ? GIVE_UP_LABEL : INITIAL_LABEL;
 
@@ -67,7 +139,12 @@ export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccep
       <p className="subtitle">거절은 물리적으로 불가능합니다</p>
 
       <div className="invite-arena" ref={arenaRef}>
-        <button type="button" className="btn btn-primary invite-yes" onClick={onAccept}>
+        <button
+          type="button"
+          ref={yesBtnRef}
+          className="btn btn-primary invite-yes"
+          onClick={onAccept}
+        >
           좋아! 🙌
         </button>
 

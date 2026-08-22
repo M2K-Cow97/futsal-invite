@@ -244,6 +244,8 @@ body {
 
 .flee-count {
   position: absolute;
+  /* 이 문구가 도망간 버튼 위에 겹치면 탭을 삼켜 게임이 멈춘다. */
+  pointer-events: none;
   bottom: 0;
   left: 0;
   right: 0;

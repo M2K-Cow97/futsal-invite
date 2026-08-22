@@ -151,7 +151,7 @@ T030(명단)은 P2 로, 없어도 초대는 성립한다.
 | `npx tsc --noEmit` | 통과 |
 | `npx next build` | 통과 — 8개 라우트, First Load JS 103kB |
 | `npm test` (계약) | **22/22 통과** (PGlite = 실제 Postgres 18) |
-| `npm run test:e2e` | **10/10 통과** (mobile 390px + desktop 1280px) |
+| `npm run test:e2e` | **12/12 통과** (mobile 터치 390px + desktop 1280px, 2건은 데스크톱에서 skip) |
 | API 수동 확인 | 생성·조회·upsert·404 전부 기대대로 |
 
 E2E 가 검증한 핵심 불변식:
@@ -167,3 +167,18 @@ E2E 가 검증한 핵심 불변식:
 - TypeScript 7 이 Next 15 와 비호환 → TS 6 으로 고정, 폐기된 `baseUrl` 제거
 - 팝업 백드롭이 밝은 카드 위에서 충분히 어둡지 않아 불투명도 55% → 72% 로 조정
 - `drizzle-orm` 이 devDependencies 에 있어 배포 시 빌드가 깨질 상태였던 것을 dependencies 로 이동
+
+### 모바일 터치 검증 (추가)
+
+실제 터치 프로파일(`hasTouch: true`, hover 없음)로 재검증하면서 3건을 발견·수정했다.
+데스크톱 hover 로만 테스트했을 때는 드러나지 않던 문제들이다.
+
+1. **"싫어." 가 "좋아!" 를 덮었다** — 2회차부터 겹쳐 수락 자체가 막힐 수 있었다.
+   → 좌표 재추첨(최대 24회, 10px 여유)으로 해결. 20회 반복 시 겹침 0회, 최소 간격 13px
+2. **카운터 문구가 탭을 삼켰다** — 버튼이 문구 아래로 도망가면 눌려도 반응이 없어 게임이 멈췄다.
+   → `.flee-count { pointer-events: none }`. 25회 연속 탭 막힘 0회
+3. **모바일에선 눌러야만 도망갔다** — hover 가 없어 "닿기 전에 피하는" 재미가 사라졌다.
+   → `touchmove` 근접 감지(46px)를 터치 기기에만 등록
+
+회귀 방지용 모바일 전용 E2E 2건을 추가했다 (`tests/e2e/flow.spec.ts` 의 `모바일 터치` describe).
+Playwright `mobile` 프로젝트도 `hasTouch: true` 로 바꿔 앞으로는 터치 조건에서 검증된다.
