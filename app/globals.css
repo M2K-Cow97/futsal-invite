@@ -1083,3 +1083,57 @@ body {
 .reject-footer {
   margin-top: 12px;
 }
+
+/* ─── 거절 관문: 기울기 보정 ───────────────────────
+   폰을 기울여 공을 초록 구역에 세우는 단계.
+   센서 미지원/권한 거부 시 드래그 폴백으로 같은 UI 를 쓴다. */
+
+.tilt-track {
+  position: relative;
+  height: 62px;
+  margin-bottom: 12px;
+  background: linear-gradient(180deg, #1d6b41 0%, #14603a 100%);
+  border: 1.5px solid var(--green-dark);
+  border-radius: 12px;
+  overflow: hidden;
+  touch-action: none; /* 드래그 폴백이 스크롤에 먹히지 않게 */
+}
+
+.tilt-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgb(245 197 66 / 34%);
+  border-left: 2px dashed var(--yellow);
+  border-right: 2px dashed var(--yellow);
+}
+
+.tilt-ball {
+  position: absolute;
+  top: 50%;
+  font-size: 26px;
+  transform: translate(-50%, -50%);
+  will-change: left;
+}
+
+.tilt-hold {
+  height: 7px;
+  background: #fff;
+  border: 1px solid var(--card-edge);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.tilt-hold-fill {
+  height: 100%;
+  background: var(--green);
+}
+
+.tilt-hold-label {
+  display: block;
+  margin: 5px 0 0;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+}

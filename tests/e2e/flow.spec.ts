@@ -252,13 +252,104 @@ test.describe('거절 관문', () => {
     await expect(page.locator('.lever-value')).not.toHaveText('87.00', { timeout: 4000 });
   });
 
-  test('② 프리킥: 어떤 파워로도 골이 인정되지 않는다', async ({ page }) => {
-    await openGauntlet(page);
+  /** 레버 → 기울기 → 프리킥 순서로 진행한다. */
+  async function skipLever(page: import('@playwright/test').Page) {
     for (let i = 0; i < 4; i++) {
       await setLever(page, 20 + i);
       await page.waitForTimeout(320);
     }
     await page.getByRole('button', { name: '다른 방법으로 거절' }).click();
+    await expect(page.locator('.tilt-track')).toBeVisible();
+  }
+
+  /** 기울기 단계: 공을 한 번 세워 배신을 유도하면 탈출 버튼이 열린다. */
+  async function skipTilt(page: import('@playwright/test').Page) {
+    // 시작 후 자동 조종으로 공을 목표 구역에 세운다 → 배신 → 탈출 버튼
+    await page.locator('.modal-actions .btn').first().click();
+    await page.evaluate(async () => {
+      const ball = () => parseFloat(
+        (document.querySelector('.tilt-ball') as HTMLElement).style.left,
+      );
+      for (let i = 0; i < 700; i++) {
+        const g = Math.max(-25, Math.min(25, (50 - ball()) * 0.9));
+        const e = new Event('deviceorientation');
+        Object.defineProperty(e, 'gamma', { value: g });
+        Object.defineProperty(e, 'beta', { value: 20 });
+        window.dispatchEvent(e);
+        await new Promise((r) => setTimeout(r, 30));
+        if (document.querySelector('.btn-primary.btn-block')) return;
+      }
+    });
+    await page.getByRole('button', { name: '다른 방법으로 거절' }).click();
+  }
+
+  test('② 기울기: 공을 세워도 센서 재보정으로 배신당한다', async ({ page }) => {
+    await openGauntlet(page);
+    await skipLever(page);
+
+    await page.locator('.modal-actions .btn').first().click();
+
+    // 자동 조종으로 공을 목표 구역에 세운다.
+    const outcome = await page.evaluate(async () => {
+      const ball = () =>
+        parseFloat((document.querySelector('.tilt-ball') as HTMLElement).style.left);
+      const msg = () => document.querySelector('.lever-msg')?.textContent ?? '';
+      let sawAlmost = false;
+
+      for (let i = 0; i < 700; i++) {
+        const g = Math.max(-25, Math.min(25, (50 - ball()) * 0.9));
+        const e = new Event('deviceorientation');
+        Object.defineProperty(e, 'gamma', { value: g });
+        Object.defineProperty(e, 'beta', { value: 20 });
+        window.dispatchEvent(e);
+        await new Promise((r) => setTimeout(r, 30));
+        if (msg().includes('안정화')) sawAlmost = true;
+        if (msg().includes('재보정')) return { sawAlmost, betrayed: true };
+      }
+      return { sawAlmost, betrayed: false };
+    });
+
+    // 일단 "안정화 완료" 를 보여준 뒤 재보정으로 뒤집는다.
+    expect(outcome.sawAlmost, '안정화 메시지가 떠야 한다').toBe(true);
+    expect(outcome.betrayed, '재보정으로 배신해야 한다').toBe(true);
+  });
+
+  test('② 기울기: 센서를 못 쓰는 환경에서는 드래그 폴백으로 동작한다', async ({ page }) => {
+    // 카카오톡 인앱 브라우저를 흉내낸다 — 링크가 카톡으로 공유되므로 실제 기본 경로다.
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'userAgent', {
+        get: () => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) KAKAOTALK/10.5.0',
+      });
+    });
+    await openGauntlet(page);
+    await skipLever(page);
+
+    // 센서를 시도하지 않고 손가락 모드로 안내해야 한다.
+    await expect(page.locator('.lever-hint')).toContainText('카톡');
+    await expect(page.locator('.modal-actions .btn').first()).toHaveText(/손가락/);
+
+    await page.locator('.modal-actions .btn').first().click();
+
+    // 드래그로 공이 실제로 움직여야 한다 (물리 루프가 폴백에서도 돌아야 함).
+    const track = page.locator('.tilt-track');
+    const box = await track.boundingBox();
+    if (!box) throw new Error('트랙을 찾을 수 없습니다');
+    const readBall = () =>
+      page.locator('.tilt-ball').evaluate((el) => parseFloat((el as HTMLElement).style.left));
+
+    const before = await readBall();
+    for (let i = 0; i < 20; i++) {
+      await page.mouse.move(box.x + box.width * 0.5, box.y + box.height / 2);
+      await page.waitForTimeout(50);
+    }
+    const after = await readBall();
+    expect(Math.abs(after - before), '드래그로 공이 움직여야 한다').toBeGreaterThan(10);
+  });
+
+  test('③ 프리킥: 어떤 파워로도 골이 인정되지 않는다', async ({ page }) => {
+    await openGauntlet(page);
+    await skipLever(page);
+    await skipTilt(page);
     await expect(page.locator('.pitch')).toBeVisible();
 
     for (let i = 0; i < 3; i++) {
@@ -273,11 +364,8 @@ test.describe('거절 관문', () => {
 
   test('④ 약관: 끝까지 읽어도 동의 체크박스가 활성화되지 않는다', async ({ page }) => {
     await openGauntlet(page);
-    for (let i = 0; i < 4; i++) {
-      await setLever(page, 20 + i);
-      await page.waitForTimeout(320);
-    }
-    await page.getByRole('button', { name: '다른 방법으로 거절' }).click();
+    await skipLever(page);
+    await skipTilt(page);
     for (let i = 0; i < 3; i++) {
       await page.getByRole('button', { name: /슛/ }).click();
       await page.waitForTimeout(1150);
