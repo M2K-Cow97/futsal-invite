@@ -579,9 +579,14 @@ body {
   text-align: center;
 }
 
+/*
+ * 모달 하단 버튼 줄. 위 요소(제출 버튼·입력칸)와 붙어 보이던 문제가 있어
+ * 상단 여백을 준다 — 성격이 다른 버튼(진행 vs 이탈)이 붙어 있으면 오탭한다.
+ */
 .modal-actions {
   display: flex;
   gap: var(--ht-space-xxs);
+  margin-top: var(--ht-space-xs);
 }
 
 /* 모달 안에서는 Compact 크기를 쓴다 */
@@ -1224,7 +1229,12 @@ body {
 }
 
 .reject-footer {
-  margin-top: 12px;
+  margin-top: var(--ht-space-xs);
+}
+
+/* 둘을 함께 쓰면 마진이 이중으로 붙는다 */
+.reject-footer.modal-actions {
+  margin-top: var(--ht-space-xs);
 }
 
 /* ─── 거절 관문: 기울기 보정 ───────────────────────

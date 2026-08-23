@@ -110,18 +110,6 @@ export const REASONS: Reason[] = [
     },
   },
   {
-    id: 'far',
-    emoji: '🚌',
-    label: '너무 멀어',
-    confirm: '거리 사유를 제출합니다. 출발지를 입력하세요.',
-    steps: ['경로 탐색…', '차량 배차…', '도착 예정 시간 계산…'],
-    verdict: '✅ 집 앞으로 갑니다',
-    resolution:
-      '주최자가 직접 데리러 갑니다. 집 앞에 도착해서 기다릴 예정이니, 안 나오시면 계속 기다립니다.',
-    stamp: '문 앞 대기 · 참석 확정',
-    needsText: { label: '어디서 출발', placeholder: '예: 분당', maxLength: 20 },
-  },
-  {
     id: 'weather',
     emoji: '🌧️',
     label: '비 올 것 같아',

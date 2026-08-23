@@ -219,7 +219,6 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
         <button
           type="button"
           className="btn btn-primary btn-block"
-          style={{ marginTop: 10 }}
           onClick={onGiveUp}
         >
           다른 방법으로 거절
