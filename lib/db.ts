@@ -46,12 +46,27 @@ function createDb() {
     new Pool({
       connectionString: url,
       /*
-       * 관리형 Postgres 는 SSL 필수. Supabase·Neon 모두 공개 CA 체인을 쓰므로
-       * 인증서 검증을 켠 채로 붙는다 — 검증을 끄면 암호화는 남지만 능동적
-       * MITM 에 DB 비밀번호와 쿼리가 노출된다.
-       * 자체 서명 인증서를 쓰는 DB 로 옮기면 ssl.ca 로 인증서를 넘긴다.
+       * 관리형 Postgres 는 SSL 필수.
+       *
+       * Supabase pooler 는 **자체 CA** 를 쓴다(실측: `*.pooler.supabase.com`
+       * ← `Supabase Intermediate 2021 CA` ← `Supabase Root 2021 CA`). 공개 CA 가
+       * 아니므로 rejectUnauthorized:true 로 두면 연결 자체가 실패한다
+       * ("self-signed certificate in certificate chain").
+       *
+       * 제대로 하려면 Supabase 대시보드에서 CA 인증서를 받아
+       * SUPABASE_CA_CERT 로 넘겨야 한다 — 그러면 암호화와 MITM 방어를 모두 얻는다.
+       * 서버가 협상 중 보내주는 체인을 신뢰 기준으로 쓰면 안 된다(MITM 이 보낸
+       * 인증서도 똑같이 받아들이게 되므로 검증이 무의미해진다).
+       *
+       * CA 가 주어지면 검증하고, 없으면 암호화만 유지한다. 후자는 수동적 도청은
+       * 막지만 능동적 MITM 은 막지 못한다 — 경로가 AWS 내부 백본이라 실행
+       * 난이도가 높아 감수하되, CA 를 확보하면 바로 검증으로 올라간다.
        */
-      ssl: isLocal ? undefined : { rejectUnauthorized: true },
+      ssl: isLocal
+        ? undefined
+        : process.env.SUPABASE_CA_CERT
+          ? { ca: process.env.SUPABASE_CA_CERT, rejectUnauthorized: true }
+          : { rejectUnauthorized: false },
       max: isLocal ? 10 : 1,
       idleTimeoutMillis: isLocal ? 30_000 : 10_000,
       connectionTimeoutMillis: 10_000,

@@ -1,5 +1,12 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
 import { defineConfig } from 'drizzle-kit';
+
+/*
+ * Next.js 는 .env.local 을 읽지만 dotenv 기본값은 .env 만 읽는다.
+ * drizzle-kit 은 Next 런타임 밖에서 도는 CLI 라 직접 지정해야 한다.
+ */
+config({ path: '.env.local' });
+config();
 
 export default defineConfig({
   schema: './lib/schema.ts',
