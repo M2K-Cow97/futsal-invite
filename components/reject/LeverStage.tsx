@@ -7,14 +7,20 @@ import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
 /**
- * 거절 버튼의 반폭(트랙 대비 %). 좁다 —
- * 어차피 맞춰도 배신당하는 단계라 쉽게 통과하면 시시하다.
+ * 거절 버튼의 반폭(트랙 대비 %). 아주 얇다.
+ *
+ * 난이도는 "판정 구간이 열려 있는 시간" 으로 계산해야 한다:
+ *   구간(ms) = (ZONE_HALF * 2 / SPEED) * 1000
+ * 1.4 * 2 / 132 → 약 21ms. 사람 반응속도(200~250ms)로는 보고 누를 수 없고,
+ * 커서의 왕복 리듬을 외워 미리 눌러야 맞는다. 그래서 여러 번 시도하게 된다.
  */
-const ZONE_HALF = 3.2;
-/** 이만큼 시도하면 다음 관문으로 넘어갈 수 있게 해준다. */
-const GIVE_UP_AFTER = 3;
-/** 커서가 왕복하는 속도(%/초). */
-const SPEED = 58;
+const ZONE_HALF = 1.4;
+/** 이만큼 실패하면 다음 관문으로 넘어갈 수 있게 해준다. */
+const GIVE_UP_AFTER = 4;
+/** 요구되는 연속 성공. 한 번은 운으로 맞을 수 있다. */
+const REQUIRED_STREAK = 3;
+/** 커서가 왕복하는 속도(%/초). 빠르다. */
+const SPEED = 132;
 
 type Phase = 'ready' | 'running' | 'almost' | 'betrayed' | 'missed';
 
@@ -36,6 +42,15 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
   const [target, setTarget] = useState(50);
   const [attempts, setAttempts] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
+  /**
+   * 연속 성공 횟수. 한 번은 운으로 맞을 수 있어 3연속을 요구한다.
+   * 빗나가면 0 으로 돌아간다.
+   */
+  const [streak, setStreak] = useState(0);
+  /* fire() 는 useCallback 이라 렌더 시점의 streak 를 클로저로 잡는다. 최신값이
+     필요하므로 ref 로 미러링한다(의존성에 streak 를 넣으면 매 성공마다 콜백이
+     재생성돼 불필요하다). */
+  const streakRef = useRef(0);
 
   const posRef = useRef(4);
   const dirRef = useRef(1);
@@ -94,6 +109,8 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
         // 방금 맞춘 자리가 아니게, 커서 반대편으로 옮긴다.
         const next = posRef.current > 50 ? 18 + Math.random() * 16 : 66 + Math.random() * 16;
         setTarget(next);
+        streakRef.current = 0;
+        setStreak(0);
         setMessage(null);
         setPhase('running');
       }, 1200);
@@ -105,13 +122,30 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
     if (phaseRef.current !== 'running') return;
 
     if (Math.abs(posRef.current - targetRef.current) <= ZONE_HALF) {
-      betray();
+      const next = streakRef.current + 1;
+      streakRef.current = next;
+      setStreak(next);
+      if (next >= REQUIRED_STREAK) {
+        betray();
+        return;
+      }
+      // 아직 부족하다. 맞을수록 버튼이 더 얇아지는 것처럼 느껴지게 위치를 옮긴다.
+      setPhase('missed');
+      setMessage(`좋아요! ${next}/${REQUIRED_STREAK} 연속 — 계속하세요`);
+      buzz(15);
+      timers.set(() => {
+        setTarget(posRef.current > 50 ? 16 + Math.random() * 20 : 64 + Math.random() * 20);
+        setMessage(null);
+        setPhase('running');
+      }, 600);
       return;
     }
 
     setAttempts((n) => n + 1);
+    streakRef.current = 0;
+    setStreak(0);
     setPhase('missed');
-    setMessage('빗나갔습니다. 거절 버튼을 정확히 누르세요');
+    setMessage('빗나갔습니다. 연속 기록이 초기화됩니다');
     buzz(20);
     timers.set(() => {
       setMessage(null);
@@ -124,7 +158,7 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
   return (
     <RejectShell
       title="거절 버튼 조준 🎯"
-      subtitle="커서가 '거절' 버튼에 겹칠 때 멈추세요. 정확히 맞춰야 접수됩니다."
+      subtitle={`커서가 '거절' 버튼에 겹칠 때 멈추세요. ${REQUIRED_STREAK}연속 성공해야 접수됩니다.`}
     >
       <div className="aim-track">
         <div
@@ -136,7 +170,9 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
         <div className="aim-cursor" style={{ left: `${cursor}%` }} aria-hidden="true" />
       </div>
 
-      <p className="aim-readout">시도 {attempts}회</p>
+      <p className="aim-readout">
+        연속 {streak}/{REQUIRED_STREAK} · 실패 {attempts}회
+      </p>
 
       {message ? (
         <p className={`lever-msg${phase === 'betrayed' || phase === 'missed' ? ' bad' : ''}`}>

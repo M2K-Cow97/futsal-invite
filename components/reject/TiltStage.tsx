@@ -7,14 +7,20 @@ import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
 /**
- * 목표 구역(트랙 중앙 기준 %). 얇다 — 정확히 세워야 한다.
- * 어차피 성공해도 배신당하는 단계라, 쉽게 통과하면 오히려 시시하다.
+ * 목표 구역(트랙 중앙 기준 %). 매우 얇다 — 트랙 폭의 3% 남짓.
+ *
+ * 난이도의 핵심은 구역 폭이 아니라 **관성**이다. 가속을 크게(0.05) 주고
+ * 감쇠를 거의 없애(0.975) 공이 잘 멈추지 않게 했다. 기울인 방향으로 계속
+ * 구르므로, 세우려면 목표 도달 전에 미리 반대로 기울여 감속해야 한다.
+ * 3초를 버텨야 하는데 미세한 바닥 편향(drift)이 계속 밀어낸다.
  */
 const ZONE_CENTER = 50;
-const ZONE_HALF = 3;
+const ZONE_HALF = 1.6;
 /** 이만큼 버티면 "달성" 처럼 보이게 한 뒤 배신한다. */
-const HOLD_MS = 2500;
+const HOLD_MS = 3000;
 const GIVE_UP_AFTER = 1;
+/** 안내 문구용. HOLD_MS 를 바꿨는데 문구가 그대로면 거짓 정보가 된다. */
+const HOLD_SEC = HOLD_MS / 1000;
 
 type Phase = 'intro' | 'playing' | 'almost' | 'betrayed' | 'fallback';
 
@@ -102,8 +108,8 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
         // 기울기 가속 + 미세한 편향(재보정 후 바닥이 기울어져 있다)
         // 가속을 키우고 감쇠를 줄였다 — 예민하고 미끄럽다. 살짝만 기울여도
         // 확 구르고, 멈추려면 반대로 기울여 잡아야 한다(오버슈트가 잘 난다).
-        velRef.current += (tiltRef.current * 0.026 + driftRef.current) * dt;
-        velRef.current *= 0.94;
+        velRef.current += (tiltRef.current * 0.05 + driftRef.current) * dt;
+        velRef.current *= 0.975;
         posRef.current += velRef.current * dt * 0.05;
 
         // 벽에 튕긴다
@@ -206,8 +212,8 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
       title="거절 각 재기 📐"
       subtitle={
         usingTilt
-          ? '폰을 좌우로 기울여 공을 초록 구역에 2초간 세우세요.'
-          : '트랙 좌우를 눌러 바닥을 기울이세요. 공을 목표 구역에 2초간 세우면 됩니다.'
+          ? `폰을 좌우로 기울여 공을 목표 구역에 ${HOLD_SEC}초간 세우세요.`
+          : `트랙 좌우를 눌러 바닥을 기울이세요. 공을 목표 구역에 ${HOLD_SEC}초간 세우면 됩니다.`
       }
     >
       <div
@@ -231,7 +237,7 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
         <div className="tilt-hold-fill" style={{ width: `${progress}%` }} />
       </div>
       <span className="tilt-hold-label">
-        유지 {(held / 1000).toFixed(1)}초 / 2.0초 · 시도 {attempts}회
+        유지 {(held / 1000).toFixed(1)}초 / {HOLD_SEC.toFixed(1)}초 · 시도 {attempts}회
       </span>
 
       {message ? (
