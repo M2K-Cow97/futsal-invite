@@ -167,12 +167,25 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
     setPhase('playing');
   }
 
-  /** 폴백: 트랙을 드래그해 공을 움직인다. */
+  /**
+   * 폴백: 트랙을 문질러 바닥을 기울인다.
+   *
+   * 손가락 위치를 목표 지점으로 삼으면(예전 방식) 공을 직접 끌고 가는 것과 같아
+   * 구역에 손을 대고만 있어도 2초가 채워진다 — 센서 모드와 난이도가 딴판이었다.
+   * 그래서 손가락의 **중앙 기준 좌우 편차**를 기울기로 환산한다. 센서에서
+   * gamma/45 를 쓰는 것과 같은 의미다: 위치가 아니라 가속을 준다.
+   */
   function onDrag(e: React.PointerEvent<HTMLDivElement>) {
     if (phase !== 'playing' && phase !== 'fallback') return;
     const rect = e.currentTarget.getBoundingClientRect();
     const pct = ((e.clientX - rect.left) / rect.width) * 100;
-    tiltRef.current = Math.max(-1, Math.min(1, (pct - posRef.current) / 30));
+    // 중앙(50)에서 벗어난 만큼이 기울기. 끝을 잡으면 최대 기울기(±1).
+    tiltRef.current = Math.max(-1, Math.min(1, (pct - 50) / 50));
+  }
+
+  /** 트랙에서 손을 떼면 바닥이 수평으로 돌아온다. */
+  function onDragEnd() {
+    tiltRef.current = 0;
   }
 
   const usingTilt = support === 'ready' && phase !== 'fallback';
@@ -185,10 +198,17 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
       subtitle={
         usingTilt
           ? '폰을 좌우로 기울여 공을 초록 구역에 2초간 세우세요.'
-          : '트랙을 문질러 공을 초록 구역에 2초간 세우세요.'
+          : '트랙 좌우를 눌러 바닥을 기울이세요. 공을 목표 구역에 2초간 세우면 됩니다.'
       }
     >
-      <div className="tilt-track" onPointerMove={onDrag} onPointerDown={onDrag}>
+      <div
+        className="tilt-track"
+        onPointerMove={onDrag}
+        onPointerDown={onDrag}
+        onPointerUp={onDragEnd}
+        onPointerLeave={onDragEnd}
+        onPointerCancel={onDragEnd}
+      >
         <div
           className="tilt-zone"
           style={{ left: `${ZONE_CENTER - ZONE_HALF}%`, width: `${ZONE_HALF * 2}%` }}
@@ -211,7 +231,7 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
         <p className="lever-hint">{FALLBACK_REASON[support]}</p>
       ) : (
         <p className="lever-hint">
-          {usingTilt ? '📱 폰을 살짝 기울이세요' : '👆 트랙을 드래그하세요'}
+          {usingTilt ? '📱 폰을 살짝 기울이세요' : '👆 트랙 좌우를 눌러 기울이세요'}
         </p>
       )}
 

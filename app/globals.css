@@ -126,7 +126,7 @@ body {
 /* Label/tertiary */
 .label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--ht-space-xxxs);
   color: var(--app-ink-soft);
   font-size: var(--sys-label-tertiary-size);
   line-height: var(--sys-label-tertiary-leading);
@@ -143,7 +143,7 @@ body {
 
 .warn {
   margin: 0 0 var(--ht-space-xs);
-  padding: 10px 12px;
+  padding: var(--ht-space-xxs) calc(var(--ht-space-xxxs) * 3);
   color: var(--app-danger-fg);
   font-size: var(--sys-body-tertiary-size);
   line-height: var(--sys-body-tertiary-leading);
@@ -159,7 +159,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--ht-space-xxxs);
   min-height: var(--sys-control-height-lg);
   padding: 0 var(--sys-control-padding-x-lg);
   font-family: inherit;
@@ -430,7 +430,7 @@ body {
 .position-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: calc(var(--ht-space-xxxs) * 3);
   margin-top: var(--ht-space-xs);
 }
 
@@ -545,7 +545,7 @@ body {
 
 .modal-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--ht-space-xxs);
 }
 
 /* 모달 안에서는 Compact 크기를 쓴다 */
@@ -619,7 +619,7 @@ body {
 
 .ticket-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--ht-space-xxs);
 }
 
 .ticket-actions .btn {
@@ -820,7 +820,7 @@ body {
 /* Status/Badge — pill, accent */
 .reject-badge {
   display: inline-block;
-  padding: 3px 10px;
+  padding: var(--ht-space-xxxs) var(--ht-space-xxs);
   margin-bottom: var(--ht-space-xxs);
   color: var(--app-accent-fg);
   font-size: var(--sys-label-tertiary-size);
@@ -833,7 +833,7 @@ body {
 
 /* Heading/h3 */
 .reject-title {
-  margin: 0 0 6px;
+  margin: 0 0 var(--ht-space-xxs);
   font-size: var(--sys-heading-h3-size);
   line-height: var(--sys-heading-h3-leading);
   letter-spacing: var(--sys-heading-h3-tracking);
@@ -1021,7 +1021,7 @@ body {
 .power-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--ht-space-xxs);
 }
 
 .power-track {
@@ -1090,7 +1090,7 @@ body {
 .keypad-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
+  gap: var(--ht-space-xxs);
 }
 
 .keypad-key {
@@ -1265,7 +1265,7 @@ body {
 .reason-list {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: var(--ht-space-xxs);
   max-height: 264px;
   padding-bottom: 2px;
   overflow-y: auto;
@@ -1283,9 +1283,9 @@ body {
 .reason-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--ht-space-xxs);
   min-height: var(--sys-control-height-sm);
-  padding: 12px var(--ht-space-xs);
+  padding: calc(var(--ht-space-xxxs) * 3) var(--ht-space-xs);
   font-family: inherit;
   font-size: var(--sys-label-secondary-size);
   line-height: var(--sys-label-secondary-leading);
