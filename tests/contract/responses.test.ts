@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { POST as createInvite } from '@/app/api/invites/route';
 import { POST as createResponse } from '@/app/api/responses/route';
-import { responses } from '@/lib/schema';
-import { createTestDb, futureDate, postJson } from '../setup';
+import { invites, responses } from '@/lib/schema';
+import { createTestDb, futureDate, pastDate, postJson } from '../setup';
 
 const BASE = 'http://localhost:3000';
 let testDb: Awaited<ReturnType<typeof createTestDb>>['db'];
@@ -98,5 +98,27 @@ describe('POST /api/responses', () => {
     const res = await respond('nope123456', '민수', 'MF');
     expect(res.status).toBe(404);
     expect((await res.json()).error).toBe('not_found');
+  });
+
+  it('경기 날짜가 지난 초대장은 마감돼 400 이다', async () => {
+    // 생성 API 는 과거 날짜를 거부하므로 지난 경기는 DB 에 직접 넣는다.
+    // (실제로는 만든 뒤 경기일이 지나간 초대장이 이 상태가 된다)
+    await testDb.insert(invites).values({
+      slug: 'pastslug01',
+      manageToken: 'past-manage-token-000001',
+      hostName: '경덕',
+      matchDate: pastDate(),
+      matchTime: '19:00',
+      venue: '지난경기장',
+    });
+
+    // 다른 테스트가 쓰지 않는 이름이어야 저장 여부를 정확히 판별할 수 있다.
+    const res = await respond('pastslug01', '지각왕', 'MF');
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('past_match');
+
+    // 응답이 저장되지 않았어야 한다.
+    const rows = await testDb.select().from(responses);
+    expect(rows.some((r) => r.guestName === '지각왕')).toBe(false);
   });
 });

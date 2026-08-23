@@ -50,7 +50,16 @@ export function InviteFlow({
       });
 
       if (!res.ok) {
-        setError('응답을 저장하지 못했어요. 다시 시도해 주세요.');
+        // 마감된 경기는 재시도해도 안 된다. "다시 시도" 라고 하면 헛되게 만든다.
+        const reason = await res
+          .json()
+          .then((b: { error?: string }) => b.error)
+          .catch(() => null);
+        setError(
+          reason === 'past_match'
+            ? '이미 지난 경기라 참석 등록이 마감됐어요 🥲 주최자에게 새 초대장을 요청해 주세요.'
+            : '응답을 저장하지 못했어요. 다시 시도해 주세요.',
+        );
         return;
       }
 
@@ -66,7 +75,9 @@ export function InviteFlow({
   return (
     <main className="stage">
       <div className="card">
-        {screen === 'invite' && <InviteScreen hostName={hostName} onAccept={accept} />}
+        {screen === 'invite' && (
+          <InviteScreen hostName={hostName} isPast={isPast} onAccept={accept} />
+        )}
 
         {screen === 'siuuu' && <SiuuuScreen onNext={() => setScreen('matchday')} />}
 

@@ -32,7 +32,16 @@ function overlaps(a: Box, b: Box, gap: number): boolean {
  * 아레나 전체의 touchmove 를 보고 손가락이 가까워지면 닿기 전에 피한다 —
  * 목업의 "누르려 하면 도망간다" 느낌을 모바일에서도 살리기 위함이다.
  */
-export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccept: () => void }) {
+export function InviteScreen({
+  hostName,
+  isPast,
+  onAccept,
+}: {
+  hostName: string;
+  /** 경기 날짜가 지났으면 마감. 링크는 열리지만 참석 등록은 안 된다. */
+  isPast?: boolean;
+  onAccept: () => void;
+}) {
   const arenaRef = useRef<HTMLDivElement>(null);
   const noBtnRef = useRef<HTMLButtonElement>(null);
   const yesBtnRef = useRef<HTMLButtonElement>(null);
@@ -144,12 +153,23 @@ export function InviteScreen({ hostName, onAccept }: { hostName: string; onAccep
       </h1>
       <p className="subtitle">거절은 물리적으로 불가능합니다</p>
 
+      {/* 마감된 경기는 시작 전에 알린다. 관문을 다 통과한 뒤
+          서버에서 거부당하면 헛수고가 된다. */}
+      {isPast && (
+        <p className="warn" role="status">
+          이미 지난 경기라 참석 등록이 마감됐어요 🥲
+          <br />
+          주최자에게 새 초대장을 요청해 주세요.
+        </p>
+      )}
+
       <div className="invite-arena" ref={arenaRef}>
         <button
           type="button"
           ref={yesBtnRef}
           className="btn btn-primary invite-yes"
           onClick={onAccept}
+          disabled={isPast}
         >
           좋아! 🙌
         </button>
