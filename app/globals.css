@@ -1,25 +1,41 @@
-/* futsal-invite — 목업(docs/기획-목업-전체.png) 기반 디자인 토큰.
-   다크 그린 배경 + 크림 카드 + 노랑 액센트. */
+/* futsal-invite — HalfTime 디자인 시스템 적용.
+   토큰: ./tokens.css · 규칙: ../docs/design-system/CLAUDE.md
+
+   ⚠ 이 파일에 색을 하드코딩하지 않는다. --sys-* 만 참조한다.
+      (알파 합성이 필요한 곳만 color-mix 로 sys 토큰을 섞는다) */
+
+@import './tokens.css';
+
+/* ─── 앱 로컬 별칭 ───────────────────────────────────
+   기존 클래스가 쓰던 이름을 sys 토큰에 연결한다.
+   여기가 이 앱과 디자인 시스템의 유일한 접점이다. */
 
 :root {
-  --bg-deep: #0d2818;
-  --bg-mid: #14432a;
-  --card: #eef3e6;
-  --card-edge: #d9e2cd;
-  --ink: #14251a;
-  --ink-soft: #4a5c4f;
-  --ink-faint: #7d8c81;
-  --green: #14603a;
-  --green-dark: #0e4529;
-  --yellow: #f5c542;
-  --yellow-dark: #d9a91f;
-  --red: #e5484d;
+  --app-bg: var(--sys-surface-base);
+  --app-card: var(--sys-surface-raised);
+  --app-sunken: var(--sys-surface-sunken);
+  --app-edge: var(--sys-border-subtle);
+  --app-edge-strong: var(--sys-border-default);
 
-  --radius-card: 22px;
-  --radius-btn: 12px;
-  --shadow-card: 0 18px 40px rgb(0 0 0 / 35%);
-  --font-ko: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
-    'Malgun Gothic', system-ui, sans-serif;
+  --app-ink: var(--sys-text-primary);
+  --app-ink-soft: var(--sys-text-secondary);
+  --app-ink-faint: var(--sys-text-tertiary);
+
+  /* 초록: 확정·성공·진행. 라이트 표면 위 텍스트/게이지용이라
+     green.500 이 아니라 어두운 쪽(green.700)을 쓴다. */
+  --app-green: var(--sys-accent-strong);
+  --app-green-deep: var(--sys-field-surface);
+
+  /* 강조: 예전 노랑 자리. green 계열로 흡수했다. */
+  --app-accent: var(--sys-accent-bg);
+  --app-accent-fg: var(--sys-accent-fg);
+  --app-accent-soft: var(--sys-accent-soft);
+  --app-accent-strong: var(--sys-accent-strong);
+
+  --app-danger: var(--sys-status-danger);
+  --app-danger-bg: var(--sys-status-danger-bg);
+  --app-danger-fg: var(--sys-status-danger-fg);
+  --app-danger-edge: var(--sys-status-danger-border);
 }
 
 * {
@@ -34,14 +50,11 @@ body {
 
 body {
   min-height: 100vh;
-  font-family: var(--font-ko);
-  color: var(--ink);
-  background:
-    radial-gradient(circle at 20% 0%, #1b5334 0%, transparent 55%),
-    linear-gradient(160deg, var(--bg-mid) 0%, var(--bg-deep) 60%);
-  background-attachment: fixed;
-  /* 풋살장 라인 느낌의 은은한 세로 스트라이프 */
-  background-repeat: no-repeat;
+  font-family: var(--ht-font-primary);
+  font-size: var(--sys-body-primary-size);
+  line-height: var(--sys-body-primary-leading);
+  color: var(--app-ink);
+  background: var(--app-bg);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -52,21 +65,21 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 24px 16px;
+  padding: var(--ht-space-s) var(--ht-space-xs);
 }
 
 .card {
   position: relative;
   width: 100%;
   max-width: 400px;
-  padding: 32px 24px;
-  background: var(--card);
-  border: 1px solid var(--card-edge);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  padding: var(--ht-space-l) var(--ht-space-s);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-lg);
+  box-shadow: var(--sys-shadow-md);
 }
 
-/* 목업의 세로로 긴 카드 비율에 맞춘다. 내용이 적어도 카드가 납작해지지 않는다. */
+/* 목업의 세로로 긴 카드 비율. 내용이 적어도 카드가 납작해지지 않는다. */
 .card > .screen {
   display: flex;
   flex-direction: column;
@@ -74,9 +87,8 @@ body {
   min-height: 400px;
 }
 
-/* 화면 전환 페이드 — 목업의 순차 진행감 */
 .screen {
-  animation: screen-in 320ms ease-out;
+  animation: screen-in var(--sys-duration-slow) var(--sys-ease-standard);
 }
 
 @keyframes screen-in {
@@ -92,101 +104,145 @@ body {
 
 /* ─── 타이포 ───────────────────────────────────────── */
 
+/* Heading/h2 — 24/28, tracking L */
 .title {
-  margin: 0 0 8px;
-  font-size: 26px;
-  font-weight: 800;
-  line-height: 1.35;
+  margin: 0 0 var(--ht-space-xxs);
+  font-size: var(--sys-heading-h2-size);
+  line-height: var(--sys-heading-h2-leading);
+  letter-spacing: var(--sys-heading-h2-tracking);
+  font-weight: var(--ht-weight-bold);
   text-align: center;
-  letter-spacing: -0.02em;
 }
 
+/* Body/secondary */
 .subtitle {
-  margin: 0 0 24px;
-  color: var(--ink-soft);
-  font-size: 15px;
+  margin: 0 0 var(--ht-space-s);
+  color: var(--app-ink-soft);
+  font-size: var(--sys-body-secondary-size);
+  line-height: var(--sys-body-secondary-leading);
   text-align: center;
 }
 
+/* Label/tertiary */
 .label {
   display: block;
   margin-bottom: 6px;
-  color: var(--ink-soft);
-  font-size: 13px;
-  font-weight: 600;
+  color: var(--app-ink-soft);
+  font-size: var(--sys-label-tertiary-size);
+  line-height: var(--sys-label-tertiary-leading);
+  font-weight: var(--ht-weight-bold);
 }
 
 .hint {
-  margin: 12px 0 0;
-  color: var(--ink-faint);
-  font-size: 13px;
+  margin: var(--ht-space-xxs) 0 0;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-body-tertiary-size);
+  line-height: var(--sys-body-tertiary-leading);
   text-align: center;
 }
 
 .warn {
-  margin: 0 0 16px;
+  margin: 0 0 var(--ht-space-xs);
   padding: 10px 12px;
-  color: #8a2b2f;
-  font-size: 13px;
+  color: var(--app-danger-fg);
+  font-size: var(--sys-body-tertiary-size);
+  line-height: var(--sys-body-tertiary-leading);
   text-align: center;
-  background: #fbe5e6;
-  border-radius: 10px;
+  background: var(--app-danger-bg);
+  border-radius: var(--sys-radius-sm);
 }
 
 /* ─── 버튼 ─────────────────────────────────────────── */
 
+/* Button/Large — h 56, radius 12, Button/primary 16/24 bold */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 14px 22px;
+  min-height: var(--sys-control-height-lg);
+  padding: 0 var(--sys-control-padding-x-lg);
   font-family: inherit;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--sys-button-primary-size);
+  line-height: var(--ht-leading-200);
+  font-weight: var(--ht-weight-bold);
+  letter-spacing: var(--ht-tracking-xl);
   border: none;
-  border-radius: var(--radius-btn);
+  border-radius: var(--sys-radius-md);
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+  transition:
+    background-color var(--sys-duration-fast) var(--sys-ease-standard),
+    transform var(--sys-duration-fast) var(--sys-ease-standard),
+    opacity var(--sys-duration-fast) var(--sys-ease-standard);
 }
 
 .btn:active:not(:disabled) {
-  transform: translateY(1px) scale(0.99);
+  transform: scale(0.99);
 }
 
+/* opacity 만 낮추면 green.500 이 여전히 "눌리는 버튼" 으로 보인다.
+   비활성은 색을 무채색으로 바꿔 확실히 구분한다. */
 .btn:disabled {
-  opacity: 0.45;
   cursor: not-allowed;
+  color: var(--sys-text-disabled);
+  background: var(--app-sunken);
+  border-color: var(--app-edge);
+  box-shadow: none;
 }
 
+/* Hierarchy=Primary — green.500 배경 + neutral.950 글씨.
+   green.500 은 밝아서 흰 글씨를 올리면 대비가 무너진다. */
 .btn-primary {
-  color: #fff;
-  background: var(--green);
-  box-shadow: 0 4px 0 var(--green-dark);
+  color: var(--sys-action-primary-fg);
+  background: var(--sys-action-primary-bg);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--sys-action-primary-bg-hover);
 }
 
 .btn-primary:active:not(:disabled) {
-  box-shadow: 0 2px 0 var(--green-dark);
+  background: var(--sys-action-primary-bg-active);
 }
 
+/* Hierarchy=Secondary — 예전 btn-accent(노랑) 자리.
+   시스템에 노랑이 없어 neutral.950 solid 로 간다. */
 .btn-accent {
-  color: #3a2c00;
-  background: var(--yellow);
-  box-shadow: 0 4px 0 var(--yellow-dark);
+  color: var(--sys-action-secondary-fg);
+  background: var(--sys-action-secondary-bg);
 }
 
 .btn-accent:active:not(:disabled) {
-  box-shadow: 0 2px 0 var(--yellow-dark);
+  background: var(--sys-action-secondary-bg-active);
 }
 
+/* Hierarchy=Tertiary */
 .btn-ghost {
-  color: var(--ink-soft);
-  background: transparent;
-  border: 1.5px solid var(--card-edge);
+  color: var(--sys-text-accent);
+  background: var(--sys-action-tertiary-bg);
+  border: 1px solid var(--sys-action-tertiary-border);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--app-sunken);
+}
+
+/* Hierarchy=Destructive */
+.btn-danger {
+  color: var(--app-danger-fg);
+  background: var(--app-danger-bg);
+  border: 1px solid var(--app-danger-edge);
 }
 
 .btn-block {
   width: 100%;
+}
+
+/* Size=Compact — h 40, Button/secondary 14 */
+.btn-compact {
+  min-height: var(--sys-control-height-sm);
+  padding: 0 var(--sys-control-padding-x-sm);
+  font-size: var(--sys-button-secondary-size);
 }
 
 /* ─── ① invite: 싫어 버튼 회피 ─────────────────────── */
@@ -194,12 +250,12 @@ body {
 .invite-arena {
   position: relative;
   min-height: 190px;
-  margin-top: 20px;
+  margin-top: var(--ht-space-xs);
 }
 
 .invite-yes {
   position: absolute;
-  top: 8px;
+  top: var(--ht-space-xxs);
   left: 50%;
   transform: translateX(-50%);
 }
@@ -207,13 +263,14 @@ body {
 /* 도망가는 버튼. transform 만 애니메이션해 60fps 를 유지한다. */
 .invite-no {
   position: absolute;
-  padding: 11px 20px;
-  color: var(--red);
-  font-size: 15px;
-  background: #fff;
-  border: 1.5px solid #f3b6b8;
-  border-radius: var(--radius-btn);
-  transition: transform 260ms cubic-bezier(0.34, 1.3, 0.64, 1);
+  min-height: var(--sys-control-height-sm);
+  padding: 0 var(--sys-control-padding-x-sm);
+  color: var(--app-danger-fg);
+  font-size: var(--sys-button-secondary-size);
+  background: var(--app-card);
+  border: 1px solid var(--app-danger-edge);
+  border-radius: var(--sys-radius-md);
+  transition: transform 260ms var(--sys-ease-spring);
 }
 
 .invite-no.fleeing {
@@ -224,7 +281,7 @@ body {
   position: absolute;
   font-size: 30px;
   pointer-events: none;
-  animation: kick 420ms ease-out forwards;
+  animation: kick 420ms var(--sys-ease-standard) forwards;
 }
 
 @keyframes kick {
@@ -249,8 +306,8 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  color: var(--ink-faint);
-  font-size: 12px;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-body-tertiary-size);
   text-align: center;
 }
 
@@ -262,10 +319,10 @@ body {
   justify-content: center;
   width: 100%;
   aspect-ratio: 4 / 3;
-  margin-bottom: 20px;
-  background: #e2e9d8;
-  border: 2px dashed var(--card-edge);
-  border-radius: 14px;
+  margin-bottom: var(--ht-space-xs);
+  background: var(--app-sunken);
+  border: 2px dashed var(--app-edge-strong);
+  border-radius: var(--sys-radius-lg);
   overflow: hidden;
 }
 
@@ -277,7 +334,7 @@ body {
 
 .media-fallback {
   font-size: 56px;
-  animation: pop 700ms ease-out;
+  animation: pop 700ms var(--sys-ease-standard);
 }
 
 @keyframes pop {
@@ -293,7 +350,7 @@ body {
 }
 
 .siu-title {
-  animation: shout 600ms ease-out;
+  animation: shout 600ms var(--sys-ease-standard);
 }
 
 @keyframes shout {
@@ -313,24 +370,33 @@ body {
 /* ─── ③ matchday ───────────────────────────────────── */
 
 .field {
-  margin-bottom: 16px;
+  margin-bottom: var(--ht-space-xs);
 }
 
+/* Input/Field — h 56, radius 12.
+   Figma 스펙은 14px 이지만 16px 미만이면 iOS 사파리가 확대한다. */
 .input {
   width: 100%;
-  padding: 13px 14px;
+  min-height: var(--sys-control-height-lg);
+  padding: 0 var(--ht-space-xs);
   font-family: inherit;
-  font-size: 16px; /* 16px 미만이면 iOS 사파리가 확대한다 */
-  color: var(--ink);
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: var(--radius-btn);
+  font-size: var(--ht-size-100);
+  line-height: var(--ht-leading-200);
+  font-weight: var(--ht-weight-regular);
+  color: var(--app-ink);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
+}
+
+.input::placeholder {
+  color: var(--app-ink-faint);
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgb(20 96 58 / 12%);
+  border-color: var(--sys-border-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sys-border-focus) 20%, transparent);
 }
 
 .readonly-row {
@@ -338,24 +404,25 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 13px 14px;
+  min-height: var(--sys-control-height-lg);
+  padding: 12px var(--ht-space-xs);
   margin-bottom: 10px;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: var(--radius-btn);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
 }
 
 .readonly-row dt {
   margin: 0;
-  color: var(--ink-faint);
-  font-size: 13px;
-  font-weight: 600;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 .readonly-row dd {
   margin: 0;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--sys-label-primary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 /* ─── ④ position ───────────────────────────────────── */
@@ -364,27 +431,38 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: var(--ht-space-xs);
 }
 
+/* Control/Position Chip — State=Default / Selected */
 .position-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  padding: 18px 10px;
+  padding: var(--ht-space-xs) 10px;
   font-family: inherit;
-  color: var(--ink);
-  background: #fff;
-  border: 2px solid var(--card-edge);
-  border-radius: 14px;
+  color: var(--app-ink);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
   cursor: pointer;
-  transition: border-color 140ms ease, transform 140ms ease;
+  transition:
+    border-color var(--sys-duration-base) var(--sys-ease-standard),
+    background-color var(--sys-duration-base) var(--sys-ease-standard),
+    transform var(--sys-duration-base) var(--sys-ease-standard);
 }
 
 .position-btn:hover:not(:disabled) {
-  border-color: var(--green);
+  border-color: var(--sys-border-focus);
   transform: translateY(-2px);
+}
+
+/* State=Selected */
+.position-btn.selected {
+  color: var(--sys-action-primary-fg);
+  background: var(--sys-action-primary-bg);
+  border-color: var(--sys-action-primary-bg);
 }
 
 .position-btn:disabled {
@@ -393,20 +471,21 @@ body {
 }
 
 .position-btn.fw {
-  border-color: #f3b6b8;
+  border-color: var(--app-danger-edge);
 }
 
 .position-btn .pos-name {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: var(--sys-label-primary-size);
+  line-height: var(--sys-label-primary-leading);
+  font-weight: var(--ht-weight-bold);
 }
 
 .position-btn .pos-abbr {
-  color: var(--ink-faint);
-  font-size: 12px;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-body-tertiary-size);
 }
 
-/* 팝업 */
+/* 팝업 — 06 Overlays */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -414,9 +493,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: rgb(0 0 0 / 72%);
-  animation: fade-in 180ms ease-out;
+  padding: var(--ht-space-xs);
+  background: color-mix(in srgb, var(--sys-surface-inverse) 68%, transparent);
+  animation: fade-in var(--sys-duration-base) var(--sys-ease-standard);
 }
 
 @keyframes fade-in {
@@ -431,11 +510,12 @@ body {
 .modal {
   width: 100%;
   max-width: 330px;
-  padding: 22px;
-  background: var(--card);
-  border-top: 4px solid var(--red);
-  border-radius: 18px;
-  animation: modal-in 240ms cubic-bezier(0.34, 1.2, 0.64, 1);
+  padding: var(--ht-space-s);
+  background: var(--app-card);
+  border-top: 3px solid var(--app-danger);
+  border-radius: var(--sys-radius-lg);
+  box-shadow: var(--sys-shadow-overlay);
+  animation: modal-in 240ms var(--sys-ease-spring);
 }
 
 @keyframes modal-in {
@@ -455,9 +535,11 @@ body {
 }
 
 .modal-text {
-  margin: 14px 0 18px;
-  font-size: 17px;
-  font-weight: 700;
+  margin: var(--ht-space-xs) 0 var(--ht-space-xs);
+  font-size: var(--sys-heading-h4-size);
+  line-height: var(--sys-heading-h4-leading);
+  letter-spacing: var(--sys-heading-h4-tracking);
+  font-weight: var(--ht-weight-bold);
   text-align: center;
 }
 
@@ -466,18 +548,21 @@ body {
   gap: 10px;
 }
 
+/* 모달 안에서는 Compact 크기를 쓴다 */
 .modal-actions .btn {
   flex: 1;
-  padding: 12px 14px;
-  font-size: 15px;
+  min-height: var(--sys-control-height-sm);
+  padding: 0 var(--ht-space-xxs);
+  font-size: var(--sys-button-secondary-size);
 }
 
 /* ─── ⑤ ticket ─────────────────────────────────────── */
 
+/* Card/* — 다크 표면 위 티켓. surface-inverse 를 쓴다. */
 .ticket {
-  margin: 20px 0;
-  background: var(--green);
-  border-radius: 16px;
+  margin: var(--ht-space-xs) 0;
+  background: var(--sys-surface-inverse);
+  border-radius: var(--sys-radius-lg);
   overflow: hidden;
 }
 
@@ -485,20 +570,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 18px;
-  color: #cfe6d7;
-  font-size: 12px;
-  font-weight: 800;
+  padding: var(--ht-space-xs) var(--ht-space-s);
+  color: var(--sys-on-inverse-text-muted);
+  font-size: var(--sys-label-tertiary-size);
+  line-height: var(--sys-label-tertiary-leading);
+  font-weight: var(--ht-weight-bold);
   letter-spacing: 0.12em;
-  background: var(--green-dark);
+  background: var(--sys-on-inverse-raised);
 }
 
+/* Status/Badge Type=Dday — green.500 */
 .ticket-head .confirmed {
-  color: var(--yellow);
+  color: var(--sys-on-inverse-accent);
 }
 
 .ticket-body {
-  padding: 6px 18px 18px;
+  padding: 6px var(--ht-space-s) var(--ht-space-s);
 }
 
 .ticket-row {
@@ -506,8 +593,8 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 13px 0;
-  border-bottom: 1px dashed rgb(255 255 255 / 18%);
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--sys-on-inverse-border);
 }
 
 .ticket-row:last-child {
@@ -516,17 +603,18 @@ body {
 
 .ticket-row dt {
   margin: 0;
-  color: #a9c8b6;
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--sys-on-inverse-text-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
   letter-spacing: 0.1em;
 }
 
 .ticket-row dd {
   margin: 0;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
+  color: var(--sys-text-inverse);
+  font-size: var(--sys-label-primary-size);
+  line-height: var(--sys-label-primary-leading);
+  font-weight: var(--ht-weight-bold);
 }
 
 .ticket-actions {
@@ -536,55 +624,59 @@ body {
 
 .ticket-actions .btn {
   flex: 1;
-  padding: 13px 12px;
-  font-size: 15px;
+  min-height: var(--sys-control-height-md);
+  padding: 0 12px;
+  font-size: var(--sys-button-secondary-size);
 }
 
 /* ─── 링크 복사 (주최자) ───────────────────────────── */
 
 .link-box {
-  margin-bottom: 14px;
-  padding: 14px;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: var(--radius-btn);
+  margin-bottom: var(--ht-space-xs);
+  padding: var(--ht-space-xs);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
 }
 
 .link-box .link-label {
   display: block;
-  margin-bottom: 8px;
-  font-size: 13px;
-  font-weight: 700;
+  margin-bottom: var(--ht-space-xxs);
+  font-size: var(--sys-label-secondary-size);
+  line-height: var(--sys-label-secondary-leading);
+  font-weight: var(--ht-weight-bold);
 }
 
 .link-box .link-desc {
   margin: 0 0 10px;
-  color: var(--ink-faint);
-  font-size: 12px;
-  line-height: 1.5;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-body-tertiary-size);
+  line-height: var(--sys-body-tertiary-leading);
 }
 
 .link-row {
   display: flex;
-  gap: 8px;
+  gap: var(--ht-space-xxs);
 }
 
 .link-row input {
   flex: 1;
   min-width: 0;
   padding: 10px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
-  color: var(--ink-soft);
-  background: #f6f8f2;
-  border: 1px solid var(--card-edge);
-  border-radius: 8px;
+  font-family: var(--ht-font-mono);
+  /* 16px 미만이면 iOS 가 확대하지만, 이 필드는 readonly 라 안전하다 */
+  font-size: var(--sys-input-secondary-size);
+  color: var(--app-ink-soft);
+  background: var(--app-sunken);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-sm);
 }
 
 .link-row .btn {
   flex-shrink: 0;
-  padding: 10px 14px;
-  font-size: 13px;
+  min-height: var(--sys-control-height-sm);
+  padding: 0 var(--ht-space-xs);
+  font-size: var(--sys-button-tertiary-size);
 }
 
 /* ─── 명단 (주최자) ────────────────────────────────── */
@@ -592,29 +684,32 @@ body {
 .counts {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin: 18px 0;
+  gap: var(--ht-space-xxs);
+  margin: var(--ht-space-xs) 0;
 }
 
 .count-cell {
   padding: 12px 4px;
   text-align: center;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: 12px;
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
 }
 
 .count-cell .count-pos {
-  color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 .count-cell .count-num {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: var(--sys-heading-h2-size);
+  line-height: var(--sys-heading-h2-leading);
+  letter-spacing: var(--sys-heading-h2-tracking);
+  font-weight: var(--ht-weight-bold);
 }
 
+/* List/Member Row */
 .roster {
   margin: 0;
   padding: 0;
@@ -625,43 +720,52 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 13px 14px;
-  margin-bottom: 8px;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: var(--radius-btn);
+  min-height: var(--sys-control-height-lg);
+  padding: 12px var(--ht-space-xs);
+  margin-bottom: var(--ht-space-xxs);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
 }
 
 .roster .guest {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--sys-label-secondary-size);
+  line-height: var(--sys-label-secondary-leading);
+  font-weight: var(--ht-weight-bold);
 }
 
+/* Status/Badge — pill */
 .roster .pos-tag {
   padding: 4px 10px;
-  color: var(--green);
-  font-size: 12px;
-  font-weight: 800;
-  background: #e2efe7;
-  border-radius: 999px;
+  color: var(--sys-status-success-fg);
+  font-size: var(--sys-label-tertiary-size);
+  line-height: var(--sys-label-tertiary-leading);
+  font-weight: var(--ht-weight-bold);
+  background: var(--sys-status-success-bg);
+  border-radius: var(--sys-radius-pill);
 }
 
 .empty {
-  padding: 32px 16px;
-  color: var(--ink-faint);
-  font-size: 14px;
+  padding: var(--ht-space-l) var(--ht-space-xs);
+  color: var(--app-ink-faint);
+  font-size: var(--sys-body-secondary-size);
   text-align: center;
-  background: #fff;
-  border: 1.5px dashed var(--card-edge);
-  border-radius: var(--radius-btn);
+  background: var(--app-card);
+  border: 1px dashed var(--app-edge-strong);
+  border-radius: var(--sys-radius-md);
 }
 
 /* ─── 스켈레톤 (Neon cold start) ───────────────────── */
 
 .skeleton {
-  background: linear-gradient(90deg, #e2e9d8 25%, #eef3e6 50%, #e2e9d8 75%);
+  background: linear-gradient(
+    90deg,
+    var(--app-sunken) 25%,
+    var(--app-card) 50%,
+    var(--app-sunken) 75%
+  );
   background-size: 200% 100%;
-  border-radius: 10px;
+  border-radius: var(--sys-radius-sm);
   animation: shimmer 1.3s infinite;
 }
 
@@ -679,9 +783,10 @@ body {
 @media (min-width: 768px) {
   .card {
     max-width: 420px;
-    padding: 40px 32px;
+    padding: var(--ht-space-xl) var(--ht-space-l);
   }
 
+  /* Heading/h1 로 한 단계 올린다 */
   .title {
     font-size: 28px;
   }
@@ -703,57 +808,64 @@ body {
 
 .reject-modal {
   max-width: 344px;
-  border-top-color: var(--yellow);
+  /* 예전엔 노랑. 시스템에 노랑이 없어 accent(green) 로 흡수. */
+  border-top-color: var(--app-accent);
 }
 
 .reject-head {
-  margin-bottom: 16px;
+  margin-bottom: var(--ht-space-xs);
   text-align: center;
 }
 
+/* Status/Badge — pill, accent */
 .reject-badge {
   display: inline-block;
   padding: 3px 10px;
-  margin-bottom: 8px;
-  color: #6b4e00;
-  font-size: 11px;
-  font-weight: 800;
+  margin-bottom: var(--ht-space-xxs);
+  color: var(--app-accent-fg);
+  font-size: var(--sys-label-tertiary-size);
+  line-height: var(--sys-label-tertiary-leading);
+  font-weight: var(--ht-weight-bold);
   letter-spacing: 0.06em;
-  background: var(--yellow);
-  border-radius: 999px;
+  background: var(--app-accent);
+  border-radius: var(--sys-radius-pill);
 }
 
+/* Heading/h3 */
 .reject-title {
   margin: 0 0 6px;
-  font-size: 19px;
-  font-weight: 800;
+  font-size: var(--sys-heading-h3-size);
+  line-height: var(--sys-heading-h3-leading);
+  letter-spacing: var(--sys-heading-h3-tracking);
+  font-weight: var(--ht-weight-bold);
 }
 
 .reject-sub {
   margin: 0;
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.5;
+  color: var(--app-ink-soft);
+  font-size: var(--sys-body-secondary-size);
+  line-height: var(--sys-body-secondary-leading);
 }
 
 .lever-hint,
 .lever-msg {
   margin: 12px 0;
-  font-size: 12px;
+  font-size: var(--sys-body-tertiary-size);
+  line-height: var(--sys-body-tertiary-leading);
   text-align: center;
 }
 
 .lever-hint {
-  color: var(--ink-faint);
+  color: var(--app-ink-faint);
 }
 
 .lever-msg {
-  font-weight: 700;
-  color: var(--green);
+  font-weight: var(--ht-weight-bold);
+  color: var(--app-green);
 }
 
 .lever-msg.bad {
-  color: #b3383c;
+  color: var(--app-danger-fg);
 }
 
 /* ① 정밀 레버 */
@@ -763,34 +875,34 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 14px;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: 14px;
+  padding: var(--ht-space-xs);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
 }
 
 .lever-value {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--ht-font-mono);
   font-size: 34px;
-  font-weight: 800;
+  font-weight: var(--ht-weight-bold);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--ht-tracking-l);
 }
 
 .lever-value.near {
-  color: var(--green);
+  color: var(--app-green);
 }
 
 .lever-target {
-  color: var(--ink-faint);
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-body-tertiary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 .lever-slider {
   width: 100%;
-  margin: 18px 0 4px;
-  accent-color: var(--green);
+  margin: var(--ht-space-xs) 0 4px;
+  accent-color: var(--app-green);
 }
 
 .lever-slider:disabled {
@@ -800,34 +912,34 @@ body {
 .lever-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: var(--ht-space-xxs);
   margin: 0;
 }
 
 .lever-stats div {
-  padding: 8px;
+  padding: var(--ht-space-xxs);
   text-align: center;
-  background: #fff;
-  border: 1px solid var(--card-edge);
-  border-radius: 10px;
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-sm);
 }
 
 .lever-stats dt {
   margin: 0;
-  color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 .lever-stats dd {
   margin: 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 15px;
-  font-weight: 800;
+  font-family: var(--ht-font-mono);
+  font-size: var(--sys-label-secondary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 .lever-stats dd.near {
-  color: var(--green);
+  color: var(--app-green);
 }
 
 /* ② 프리킥 */
@@ -835,30 +947,30 @@ body {
 .pitch {
   position: relative;
   height: 118px;
-  margin-bottom: 14px;
-  background: linear-gradient(180deg, #1d6b41 0%, #14603a 100%);
-  border-radius: 12px;
+  margin-bottom: var(--ht-space-xs);
+  background: var(--sys-field-surface);
+  border-radius: var(--sys-radius-md);
   overflow: hidden;
 }
 
 .pitch-goal {
   position: absolute;
-  top: 24px;
+  top: var(--ht-space-s);
   right: 10px;
   width: 12px;
   height: 68px;
   background: repeating-linear-gradient(
     0deg,
-    rgb(255 255 255 / 75%) 0 2px,
+    color-mix(in srgb, var(--sys-field-line) 75%, transparent) 0 2px,
     transparent 2px 7px
   );
-  border: 2px solid #fff;
+  border: 2px solid var(--sys-field-line);
   border-radius: 3px;
 }
 
 .pitch-keeper {
   position: absolute;
-  top: 40px;
+  top: var(--ht-space-l);
   right: 30px;
   font-size: 28px;
   animation: keeper-ready 1.1s ease-in-out infinite;
@@ -876,7 +988,7 @@ body {
 
 .pitch-ball {
   position: absolute;
-  bottom: 16px;
+  bottom: var(--ht-space-xs);
   font-size: 22px;
   transition: left 850ms cubic-bezier(0.3, 0.9, 0.5, 1);
 }
@@ -900,10 +1012,10 @@ body {
 .pitch-keeper-label {
   position: absolute;
   top: 6px;
-  left: 8px;
-  color: rgb(255 255 255 / 78%);
-  font-size: 10px;
-  font-weight: 700;
+  left: var(--ht-space-xxs);
+  color: color-mix(in srgb, var(--sys-field-line) 78%, transparent);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 .power-wrap {
@@ -915,38 +1027,40 @@ body {
 .power-track {
   position: relative;
   flex: 1;
-  height: 16px;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: 999px;
+  height: var(--ht-space-xs);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-pill);
   overflow: hidden;
 }
 
-/* 이 구간에 맞춰도 결과는 같다. 그게 포인트다. */
+/* 이 구간에 맞춰도 결과는 같다. 그게 포인트다.
+   흰 트랙 위이므로 진한 초록(green.700)으로 대비를 낸다. */
 .power-sweet {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 75%;
   width: 6%;
-  background: rgb(20 96 58 / 30%);
+  background: color-mix(in srgb, var(--app-accent-strong) 35%, transparent);
 }
 
+/* Progress/Step — accent(green) → danger 로 차오른다 */
 .power-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--yellow) 0%, #e5484d 100%);
+  background: linear-gradient(90deg, var(--app-accent) 0%, var(--app-danger) 100%);
 }
 
 .power-num {
   min-width: 44px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 14px;
-  font-weight: 800;
+  font-family: var(--ht-font-mono);
+  font-size: var(--sys-label-secondary-size);
+  font-weight: var(--ht-weight-bold);
   text-align: right;
 }
 
 .power-num.zone {
-  color: var(--green);
+  color: var(--app-green);
 }
 
 /* ③ 메시 집 버튼키 */
@@ -957,20 +1071,20 @@ body {
   justify-content: center;
   height: 50px;
   margin-bottom: 12px;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: 12px;
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
 }
 
 .keypad-dots {
-  font-size: 20px;
+  font-size: var(--ht-size-150);
   letter-spacing: 0.24em;
 }
 
 .keypad-empty,
 .keypad-checking {
-  color: var(--ink-faint);
-  font-size: 13px;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-body-secondary-size);
 }
 
 .keypad-grid {
@@ -980,54 +1094,55 @@ body {
 }
 
 .keypad-key {
-  padding: 13px 0;
+  min-height: var(--sys-control-height-sm);
+  padding: 12px 0;
   font-family: inherit;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--ink);
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: 11px;
+  font-size: var(--sys-heading-h4-size);
+  font-weight: var(--ht-weight-bold);
+  color: var(--app-ink);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
   cursor: pointer;
 }
 
 .keypad-key:active {
-  background: #e8efe0;
+  background: var(--app-sunken);
   transform: scale(0.97);
 }
 
 .keypad-key.ok {
-  color: #fff;
-  background: var(--green);
-  border-color: var(--green);
+  color: var(--sys-action-primary-fg);
+  background: var(--sys-action-primary-bg);
+  border-color: var(--sys-action-primary-bg);
 }
 
 .keypad-key.sub {
-  color: var(--ink-faint);
+  color: var(--app-ink-faint);
 }
 
 /* ④ 장문 약관 */
 
 .terms-progress {
   height: 7px;
-  background: #fff;
-  border: 1px solid var(--card-edge);
-  border-radius: 999px;
+  background: var(--app-sunken);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-pill);
   overflow: hidden;
 }
 
 .terms-progress-fill {
   height: 100%;
-  background: var(--green);
+  background: var(--app-green);
   transition: width 160ms linear;
 }
 
 .terms-pct {
   display: block;
   margin: 5px 0 10px;
-  color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
   text-align: right;
 }
 
@@ -1035,49 +1150,50 @@ body {
   height: 176px;
   padding: 12px;
   overflow-y: auto;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: 12px;
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
   -webkit-overflow-scrolling: touch;
 }
 
 .terms-lead {
   margin: 0 0 10px;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 .terms-clause {
-  margin: 0 0 8px;
-  color: var(--ink-soft);
-  font-size: 11px;
+  margin: 0 0 var(--ht-space-xxs);
+  color: var(--app-ink-soft);
+  font-size: var(--sys-label-tertiary-size);
   line-height: 1.6;
 }
 
 .terms-clause b {
-  color: var(--ink);
+  color: var(--app-ink);
 }
 
 .terms-end {
   margin: 12px 0 0;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
   text-align: center;
 }
 
 .terms-agree {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ht-space-xxs);
   margin: 12px 0;
-  color: var(--ink-soft);
-  font-size: 12px;
+  color: var(--app-ink-soft);
+  font-size: var(--sys-body-tertiary-size);
 }
 
 .terms-agree input {
   width: 17px;
   height: 17px;
   flex-shrink: 0;
+  accent-color: var(--app-green);
 }
 
 .reject-footer {
@@ -1085,27 +1201,30 @@ body {
 }
 
 /* ─── 거절 관문: 기울기 보정 ───────────────────────
-   폰을 기울여 공을 초록 구역에 세우는 단계.
+   폰을 기울여 공을 목표 구역에 세우는 단계.
    센서 미지원/권한 거부 시 드래그 폴백으로 같은 UI 를 쓴다. */
 
 .tilt-track {
   position: relative;
   height: 62px;
   margin-bottom: 12px;
-  background: linear-gradient(180deg, #1d6b41 0%, #14603a 100%);
-  border: 1.5px solid var(--green-dark);
-  border-radius: 12px;
+  background: var(--sys-field-surface);
+  border: 1px solid var(--sys-field-surface);
+  border-radius: var(--sys-radius-md);
   overflow: hidden;
   touch-action: none; /* 드래그 폴백이 스크롤에 먹히지 않게 */
 }
 
+/* 예전엔 노랑 구역. green 계열로 흡수했다.
+   단 green.500 은 green.900 트랙과 명도차가 부족해 목표 구역이 안 읽힌다
+   → 어두운 표면 위에서는 accent-on-dark(green.200) 를 쓴다. */
 .tilt-zone {
   position: absolute;
   top: 0;
   bottom: 0;
-  background: rgb(245 197 66 / 34%);
-  border-left: 2px dashed var(--yellow);
-  border-right: 2px dashed var(--yellow);
+  background: color-mix(in srgb, var(--sys-accent-on-dark) 30%, transparent);
+  border-left: 2px dashed var(--sys-accent-on-dark);
+  border-right: 2px dashed var(--sys-accent-on-dark);
 }
 
 .tilt-ball {
@@ -1118,57 +1237,72 @@ body {
 
 .tilt-hold {
   height: 7px;
-  background: #fff;
-  border: 1px solid var(--card-edge);
-  border-radius: 999px;
+  background: var(--app-sunken);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-pill);
   overflow: hidden;
 }
 
 .tilt-hold-fill {
   height: 100%;
-  background: var(--green);
+  background: var(--app-green);
 }
 
 .tilt-hold-label {
   display: block;
   margin: 5px 0 0;
-  color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
   text-align: right;
 }
 
 /* ─── 거절 관문: 사유 심사 ─────────────────────────
    사유를 고르면 그 사유가 오히려 확정의 근거로 되돌아온다. */
 
+/* 목록이 잘리는 지점에 페이드를 걸어 "더 있다"를 알린다.
+   (기존엔 항목이 중간에서 뚝 끊겨 스크롤 가능함이 안 보였다) */
 .reason-list {
   display: flex;
   flex-direction: column;
   gap: 7px;
   max-height: 264px;
+  padding-bottom: 2px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent 100%);
 }
 
+/* 끝까지 스크롤하면 페이드를 걷는다 */
+.reason-list:has(.reason-item:last-child:hover),
+.reason-list.at-end {
+  mask-image: none;
+}
+
+/* List/Selectable Player 패턴 */
 .reason-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 13px 14px;
+  min-height: var(--sys-control-height-sm);
+  padding: 12px var(--ht-space-xs);
   font-family: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
+  font-size: var(--sys-label-secondary-size);
+  line-height: var(--sys-label-secondary-leading);
+  font-weight: var(--ht-weight-bold);
+  color: var(--app-ink);
   text-align: left;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: 12px;
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
   cursor: pointer;
-  transition: border-color 140ms ease, transform 140ms ease;
+  transition:
+    border-color var(--sys-duration-base) var(--sys-ease-standard),
+    transform var(--sys-duration-base) var(--sys-ease-standard);
 }
 
 .reason-item:hover:not(:disabled) {
-  border-color: var(--green);
+  border-color: var(--sys-border-focus);
   transform: translateX(2px);
 }
 
@@ -1177,15 +1311,15 @@ body {
 }
 
 .reason-item.rejected {
-  color: var(--ink-faint);
-  background: #f0f2ec;
+  color: var(--app-ink-faint);
+  background: var(--app-sunken);
   text-decoration: line-through;
   cursor: not-allowed;
 }
 
 .reason-emoji {
   flex-shrink: 0;
-  font-size: 20px;
+  font-size: var(--ht-size-150);
 }
 
 .reason-label {
@@ -1194,16 +1328,16 @@ body {
 
 .reason-mark {
   flex-shrink: 0;
-  color: var(--ink-faint);
-  font-size: 12px;
-  font-weight: 800;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 .reason-item.rejected .reason-mark {
-  color: #b3383c;
+  color: var(--app-danger-fg);
 }
 
-/* 파일 첨부 버튼 */
+/* 파일 첨부 버튼 — Form/Logo Picker 패턴 */
 
 .injury-drop {
   display: flex;
@@ -1211,18 +1345,18 @@ body {
   align-items: center;
   gap: 4px;
   width: 100%;
-  padding: 26px 16px;
+  padding: var(--ht-space-s) var(--ht-space-xs);
   font-family: inherit;
-  color: var(--ink);
-  background: #fff;
-  border: 2px dashed var(--card-edge);
-  border-radius: 14px;
+  color: var(--app-ink);
+  background: var(--app-card);
+  border: 2px dashed var(--app-edge-strong);
+  border-radius: var(--sys-radius-lg);
   cursor: pointer;
-  transition: border-color 140ms ease;
+  transition: border-color var(--sys-duration-base) var(--sys-ease-standard);
 }
 
 .injury-drop:hover {
-  border-color: var(--green);
+  border-color: var(--sys-border-focus);
 }
 
 .injury-drop-icon {
@@ -1230,33 +1364,33 @@ body {
 }
 
 .injury-drop-main {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: var(--sys-label-secondary-size);
+  font-weight: var(--ht-weight-bold);
 }
 
 .injury-drop-sub {
-  color: var(--ink-faint);
-  font-size: 11px;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
 }
 
 /* 심사 진행 */
 
 .injury-review,
 .injury-verdict {
-  padding: 14px;
-  background: #fff;
-  border: 1.5px solid var(--card-edge);
-  border-radius: 14px;
+  padding: var(--ht-space-xs);
+  background: var(--app-card);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-lg);
 }
 
 .injury-file {
   margin: 0 0 10px;
   padding-bottom: 10px;
-  color: var(--ink-soft);
-  font-size: 12px;
-  font-weight: 700;
+  color: var(--app-ink-soft);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
   word-break: break-all;
-  border-bottom: 1px dashed var(--card-edge);
+  border-bottom: 1px dashed var(--app-edge);
 }
 
 .injury-steps {
@@ -1268,56 +1402,58 @@ body {
 .injury-steps li {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ht-space-xxs);
   padding: 5px 0;
-  color: var(--ink-faint);
-  font-size: 12.5px;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-body-tertiary-size);
+  line-height: var(--sys-body-tertiary-leading);
   transition: color 200ms ease;
 }
 
 .injury-steps li.active {
-  color: var(--ink);
-  font-weight: 700;
+  color: var(--app-ink);
+  font-weight: var(--ht-weight-bold);
 }
 
 .injury-steps li.done {
-  color: var(--green);
+  color: var(--app-green);
 }
 
 .injury-step-mark {
-  width: 14px;
-  font-weight: 800;
+  width: var(--ht-space-xs);
+  font-weight: var(--ht-weight-bold);
   text-align: center;
 }
 
 /* 판정 */
 
 .injury-verdict-head {
-  margin: 0 0 8px;
-  color: var(--green);
-  font-size: 16px;
-  font-weight: 800;
+  margin: 0 0 var(--ht-space-xxs);
+  color: var(--app-green);
+  font-size: var(--sys-label-primary-size);
+  line-height: var(--sys-label-primary-leading);
+  font-weight: var(--ht-weight-bold);
   text-align: center;
 }
 
 .injury-verdict-body {
   margin: 0 0 12px;
-  color: var(--ink-soft);
-  font-size: 12.5px;
+  color: var(--app-ink-soft);
+  font-size: var(--sys-body-tertiary-size);
   line-height: 1.65;
   text-align: center;
 }
 
 .injury-stamp {
   margin: 0;
-  padding: 8px;
-  color: #8a2b2f;
-  font-size: 13px;
-  font-weight: 800;
+  padding: var(--ht-space-xxs);
+  color: var(--app-danger-fg);
+  font-size: var(--sys-label-secondary-size);
+  font-weight: var(--ht-weight-bold);
   text-align: center;
   letter-spacing: 0.04em;
-  background: #fbe5e6;
-  border: 1.5px solid #f3b6b8;
-  border-radius: 10px;
+  background: var(--app-danger-bg);
+  border: 1px solid var(--app-danger-edge);
+  border-radius: var(--sys-radius-sm);
   transform: rotate(-1.5deg);
 }

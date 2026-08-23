@@ -1,0 +1,352 @@
+/* ══════════════════════════════════════════════════════════════════
+   HalfTime 디자인 시스템 — 토큰
+   ------------------------------------------------------------------
+   출처: Figma "하프타임 — 와이어프레임"
+     file  bvvtkRiQ2SXLzU4sQ6WJLA
+     page  158:2 (Basic System / Typography / Color / COMPONENT LIBRARY)
+   추출: get_variable_defs (2026-08-23)
+
+   이 파일은 세 프로젝트가 공유한다 — 메인앱 · futsal-invite · sample_442.
+   ⚠ 손으로 값을 고치지 말 것. Figma 변수가 유일한 출처다.
+      디자인이 바뀌면 get_variable_defs 를 다시 돌려 이 파일을 재생성한다.
+
+   레이어 구조:
+     ① ref   — Figma 원시 토큰. 값을 그대로 옮긴 것. 직접 쓰지 않는다.
+     ② sys   — 의미(semantic) 토큰. 컴포넌트는 이것만 참조한다.
+   ══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── ① ref / color ──────────────────────────────────────────────
+     HalfTime/color/* — 스케일 3종(green 주, blue 보조, neutral). */
+
+  /* green — primary. 500 이 브랜드 코어. */
+  --ht-green-50: #ecfff4;
+  --ht-green-100: #ccffe0;
+  --ht-green-200: #99ffc2;
+  --ht-green-300: #5ef59a;
+  --ht-green-400: #23ea74;
+  --ht-green-500: #00e061;
+  --ht-green-600: #00be50;
+  --ht-green-700: #009940;
+  --ht-green-800: #007a35;
+  --ht-green-900: #005c29;
+
+  /* blue — secondary. */
+  --ht-blue-50: #f1f4ff;
+  --ht-blue-100: #e3e9ff;
+  --ht-blue-200: #c5d0ff;
+  --ht-blue-300: #91a8ff;
+  --ht-blue-400: #6484ee;
+  --ht-blue-500: #3157d5;
+  --ht-blue-600: #2949ba;
+  --ht-blue-700: #223c99;
+  --ht-blue-800: #1d337e;
+  --ht-blue-900: #17285f;
+
+  /* neutral — 녹색이 살짝 섞인 무채색(#11130F 계열). 순회색이 아니다. */
+  --ht-neutral-0: #ffffff;
+  --ht-neutral-50: #f7f8f6;
+  --ht-neutral-100: #eff1ed;
+  --ht-neutral-200: #e6e9e3;
+  --ht-neutral-300: #d0d5ce;
+  --ht-neutral-400: #aeb5ac;
+  --ht-neutral-500: #8a9288;
+  --ht-neutral-600: #6b7168;
+  --ht-neutral-700: #4e544c;
+  --ht-neutral-800: #343832;
+  --ht-neutral-900: #22251f;
+  --ht-neutral-950: #11130f;
+
+  /* ─── ① ref / typography ────────────────────────────────────────
+     font-family/primary, font-size/*, line-height/*, letter-spacing/*  */
+
+  --ht-font-primary: 'Spoqa Han Sans Neo', -apple-system, BlinkMacSystemFont,
+    'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  --ht-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --ht-weight-regular: 400;
+  --ht-weight-bold: 700;
+
+  /* font-size/50 … /500 */
+  --ht-size-50: 12px;
+  --ht-size-75: 14px;
+  --ht-size-100: 16px;
+  --ht-size-125: 18px;
+  --ht-size-150: 20px;
+  --ht-size-200: 24px;
+  --ht-size-500: 40px;
+
+  /* line-height/* + sys/typography 개별값 */
+  --ht-leading-125: 18px;
+  --ht-leading-150: 20px;
+  --ht-leading-200: 24px;
+  --ht-leading-250: 28px;
+  --ht-leading-400: 48px;
+
+  /* letter-spacing/* — S 가 가장 좁다(큰 글자용). */
+  --ht-tracking-s: -1.5px;
+  --ht-tracking-l: -0.64px;
+  --ht-tracking-xl: 0px;
+
+  /* ─── ① ref / spacing ───────────────────────────────────────────
+     ref/spacing/flexbox/* — 8 기반 스케일. */
+
+  --ht-space-xxs: 8px;
+  --ht-space-xs: 16px;
+  --ht-space-s: 24px;
+  --ht-space-l: 40px;
+  --ht-space-xl: 48px;
+
+  /* ══════════════════════════════════════════════════════════════
+     ② sys — 의미 토큰. 컴포넌트는 여기서부터 쓴다.
+     ══════════════════════════════════════════════════════════════ */
+
+  /* surface — 라이트 모드. HalfTime 원본은 다크지만
+     futsal-invite 는 밝은 톤을 유지하기로 결정 → neutral 스케일의
+     라이트 대응값을 쓴다. 색 체계는 동일하다. */
+  --sys-surface-base: var(--ht-neutral-50);
+  --sys-surface-raised: var(--ht-neutral-0);
+  --sys-surface-sunken: var(--ht-neutral-100);
+  --sys-surface-inverse: var(--ht-neutral-950);
+
+  /* border */
+  --sys-border-subtle: var(--ht-neutral-200);
+  --sys-border-default: var(--ht-neutral-300);
+  --sys-border-strong: var(--ht-neutral-400);
+  --sys-border-focus: var(--ht-green-600);
+
+  /* text — 라이트 배경 위. */
+  --sys-text-primary: var(--ht-neutral-950);
+  --sys-text-secondary: var(--ht-neutral-600);
+  --sys-text-tertiary: var(--ht-neutral-500);
+  --sys-text-inverse: var(--ht-neutral-0);
+  --sys-text-accent: var(--ht-green-800);
+  --sys-text-disabled: var(--ht-neutral-400);
+
+  /* action — primary 는 green.500 위에 neutral.950 글씨.
+     green.500 은 매우 밝아서 흰 글씨를 올리면 대비가 무너진다. */
+  --sys-action-primary-bg: var(--ht-green-500);
+  --sys-action-primary-fg: var(--ht-neutral-950);
+  --sys-action-primary-bg-hover: var(--ht-green-400);
+  --sys-action-primary-bg-active: var(--ht-green-600);
+
+  --sys-action-secondary-bg: var(--ht-neutral-950);
+  --sys-action-secondary-fg: var(--ht-neutral-0);
+  --sys-action-secondary-bg-active: var(--ht-neutral-800);
+
+  --sys-action-tertiary-bg: transparent;
+  --sys-action-tertiary-fg: var(--ht-text-accent, var(--ht-green-800));
+  --sys-action-tertiary-border: var(--ht-neutral-300);
+
+  /* status */
+  --sys-status-success-bg: var(--ht-green-50);
+  --sys-status-success-fg: var(--ht-green-900);
+  --sys-status-success-border: var(--ht-green-200);
+
+  --sys-status-info-bg: var(--ht-blue-50);
+  --sys-status-info-fg: var(--ht-blue-900);
+  --sys-status-info-border: var(--ht-blue-200);
+
+  /* destructive — HalfTime 팔레트에 red 스케일이 없다.
+     컴포넌트 라이브러리의 '선수 삭제' / Red card 에서 쓰인 값을
+     여기 한 곳에만 고정한다(시스템 확장 지점). */
+  --sys-status-danger: #ef4444;
+  --sys-status-danger-bg: #fef2f2;
+  --sys-status-danger-fg: #991b1b;
+  --sys-status-danger-border: #fecaca;
+
+  /* accent — 강조/경고 구역. 노랑(#F5C542)을 쓰지 않고
+     green 계열로 흡수했다 → 시스템 외 색이 남지 않는다. */
+  --sys-accent-bg: var(--ht-green-500);
+  --sys-accent-fg: var(--ht-neutral-950);
+  --sys-accent-soft: var(--ht-green-100);
+  --sys-accent-strong: var(--ht-green-700);
+
+  /* accent-on-dark — 어두운 초록 표면(green.900 트랙/피치) 위에서
+     쓰는 강조. green.500 은 green.900 과 명도차가 부족해 목표 구역이
+     안 읽힌다 → 스케일 밝은 쪽(200)을 쓴다. */
+  --sys-accent-on-dark: var(--ht-green-200);
+
+  /* ─── on-inverse — 라이트 앱 안의 어두운 조각 ───────────────────
+     티켓·피치처럼 밝은 화면 안에 의도적으로 놓인 어두운 표면.
+     라이트용 --sys-text-* 를 그대로 쓰면 대비가 무너지므로
+     이 표면 위에서만 쓰는 짝을 따로 둔다. */
+  --sys-on-inverse-text: var(--ht-neutral-0);
+  --sys-on-inverse-text-muted: var(--ht-neutral-400);
+  --sys-on-inverse-text-faint: var(--ht-neutral-500);
+  --sys-on-inverse-border: var(--ht-neutral-800);
+  --sys-on-inverse-raised: var(--ht-neutral-900);
+  --sys-on-inverse-accent: var(--ht-green-500);
+
+  /* 필드(피치/트랙) 표면 — 풋살장 톤. */
+  --sys-field-surface: var(--ht-green-900);
+  --sys-field-line: var(--ht-neutral-0);
+
+  /* ─── ② sys / typography — Figma 텍스트 스타일 대응 ───────────── */
+
+  /* HalfTime/Heading/h0 — 48/48, tracking S */
+  --sys-heading-h0-size: 48px;
+  --sys-heading-h0-leading: var(--ht-leading-400);
+  --sys-heading-h0-tracking: var(--ht-tracking-s);
+
+  /* HalfTime/Heading/h1 — 40/48, tracking S */
+  --sys-heading-h1-size: var(--ht-size-500);
+  --sys-heading-h1-leading: var(--ht-leading-400);
+  --sys-heading-h1-tracking: var(--ht-tracking-s);
+
+  /* HalfTime/Heading/h2 — 24/28, tracking L */
+  --sys-heading-h2-size: var(--ht-size-200);
+  --sys-heading-h2-leading: var(--ht-leading-250);
+  --sys-heading-h2-tracking: var(--ht-tracking-l);
+
+  /* HalfTime/Heading/h3 — 20/24, tracking L */
+  --sys-heading-h3-size: var(--ht-size-150);
+  --sys-heading-h3-leading: var(--ht-leading-200);
+  --sys-heading-h3-tracking: var(--ht-tracking-l);
+
+  /* HalfTime/Heading/h4 — 18/24, tracking L */
+  --sys-heading-h4-size: var(--ht-size-125);
+  --sys-heading-h4-leading: var(--ht-leading-200);
+  --sys-heading-h4-tracking: var(--ht-tracking-l);
+
+  /* HalfTime/Body/primary — 16/24 · secondary 14/20 · tertiary 12/18 */
+  --sys-body-primary-size: var(--ht-size-100);
+  --sys-body-primary-leading: var(--ht-leading-200);
+  --sys-body-secondary-size: var(--ht-size-75);
+  --sys-body-secondary-leading: var(--ht-leading-150);
+  --sys-body-tertiary-size: var(--ht-size-50);
+  --sys-body-tertiary-leading: var(--ht-leading-125);
+
+  /* HalfTime/Label/* — bold. primary 16/24 · secondary 14/20 · tertiary 12/18 */
+  --sys-label-primary-size: var(--ht-size-100);
+  --sys-label-primary-leading: var(--ht-leading-200);
+  --sys-label-secondary-size: var(--ht-size-75);
+  --sys-label-secondary-leading: var(--ht-leading-150);
+  --sys-label-tertiary-size: var(--ht-size-50);
+  --sys-label-tertiary-leading: var(--ht-leading-125);
+
+  /* HalfTime/Button/* — bold. primary 16/24 · secondary 14/24 · tertiary 12/18 */
+  --sys-button-primary-size: var(--ht-size-100);
+  --sys-button-secondary-size: var(--ht-size-75);
+  --sys-button-tertiary-size: var(--ht-size-50);
+
+  /* HalfTime/Input/* — regular. primary 14/20 · secondary 12/16 */
+  --sys-input-primary-size: var(--ht-size-75);
+  --sys-input-primary-leading: var(--ht-leading-150);
+  --sys-input-secondary-size: var(--ht-size-50);
+  --sys-input-secondary-leading: var(--ht-size-100);
+
+  /* ─── ② sys / radius ────────────────────────────────────────────
+     컴포넌트 라이브러리 실측: 버튼·입력 12, 카드 16, pill 999. */
+  --sys-radius-sm: 8px;
+  --sys-radius-md: 12px;
+  --sys-radius-lg: 16px;
+  --sys-radius-xl: 20px;
+  --sys-radius-pill: 999px;
+  --sys-radius-circle: 50%;
+
+  /* ─── ② sys / elevation ─────────────────────────────────────────
+     라이트 표면용. 다크 테마에서는 그림자 대신 surface 단계로 올린다. */
+  --sys-shadow-sm: 0 1px 2px rgb(17 19 15 / 6%);
+  --sys-shadow-md: 0 4px 12px rgb(17 19 15 / 8%);
+  --sys-shadow-lg: 0 12px 32px rgb(17 19 15 / 12%);
+  --sys-shadow-overlay: 0 24px 48px rgb(17 19 15 / 24%);
+
+  /* ─── ② sys / motion ───────────────────────────────────────────── */
+  --sys-duration-fast: 120ms;
+  --sys-duration-base: 180ms;
+  --sys-duration-slow: 320ms;
+  --sys-ease-standard: cubic-bezier(0.2, 0, 0.2, 1);
+  --sys-ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
+
+  /* ─── ② sys / control size ──────────────────────────────────────
+     컴포넌트 라이브러리 Button 실측: Large h=56, Compact h=40. */
+  --sys-control-height-lg: 56px;
+  --sys-control-height-md: 48px;
+  --sys-control-height-sm: 40px;
+  --sys-control-padding-x-lg: var(--ht-space-s);
+  --sys-control-padding-x-sm: var(--ht-space-xs);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   유틸리티 클래스 — Figma 텍스트 스타일 1:1 대응.
+   세 프로젝트가 같은 이름으로 쓴다.
+   ══════════════════════════════════════════════════════════════════ */
+
+.ht-h0,
+.ht-h1,
+.ht-h2,
+.ht-h3,
+.ht-h4 {
+  font-family: var(--ht-font-primary);
+  font-weight: var(--ht-weight-bold);
+  margin: 0;
+}
+
+.ht-h0 {
+  font-size: var(--sys-heading-h0-size);
+  line-height: var(--sys-heading-h0-leading);
+  letter-spacing: var(--sys-heading-h0-tracking);
+}
+.ht-h1 {
+  font-size: var(--sys-heading-h1-size);
+  line-height: var(--sys-heading-h1-leading);
+  letter-spacing: var(--sys-heading-h1-tracking);
+}
+.ht-h2 {
+  font-size: var(--sys-heading-h2-size);
+  line-height: var(--sys-heading-h2-leading);
+  letter-spacing: var(--sys-heading-h2-tracking);
+}
+.ht-h3 {
+  font-size: var(--sys-heading-h3-size);
+  line-height: var(--sys-heading-h3-leading);
+  letter-spacing: var(--sys-heading-h3-tracking);
+}
+.ht-h4 {
+  font-size: var(--sys-heading-h4-size);
+  line-height: var(--sys-heading-h4-leading);
+  letter-spacing: var(--sys-heading-h4-tracking);
+}
+
+.ht-body,
+.ht-body-sm,
+.ht-body-xs {
+  font-family: var(--ht-font-primary);
+  font-weight: var(--ht-weight-regular);
+  letter-spacing: var(--ht-tracking-xl);
+}
+
+.ht-body {
+  font-size: var(--sys-body-primary-size);
+  line-height: var(--sys-body-primary-leading);
+}
+.ht-body-sm {
+  font-size: var(--sys-body-secondary-size);
+  line-height: var(--sys-body-secondary-leading);
+}
+.ht-body-xs {
+  font-size: var(--sys-body-tertiary-size);
+  line-height: var(--sys-body-tertiary-leading);
+}
+
+.ht-label,
+.ht-label-sm,
+.ht-label-xs {
+  font-family: var(--ht-font-primary);
+  font-weight: var(--ht-weight-bold);
+  letter-spacing: var(--ht-tracking-xl);
+}
+
+.ht-label {
+  font-size: var(--sys-label-primary-size);
+  line-height: var(--sys-label-primary-leading);
+}
+.ht-label-sm {
+  font-size: var(--sys-label-secondary-size);
+  line-height: var(--sys-label-secondary-leading);
+}
+.ht-label-xs {
+  font-size: var(--sys-label-tertiary-size);
+  line-height: var(--sys-label-tertiary-leading);
+}
