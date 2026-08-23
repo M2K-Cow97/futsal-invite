@@ -222,7 +222,8 @@ test.describe('거절 관문', () => {
 
   /** 사유 심사를 2개 기각당해 다음 관문(레버)으로 넘어간다. */
   async function skipReasons(page: import('@playwright/test').Page) {
-    for (const label of ['너무 피곤해', '비 올 것 같아']) {
+    // 입력이 필요 없는 사유만 골라 빠르게 통과한다.
+    for (const label of ['비 올 것 같아', '그냥 하고 싶지 않아']) {
       await page.locator('.reason-item').filter({ hasText: label }).click();
       await expect(page.locator('.injury-stamp')).toBeVisible({ timeout: 8000 });
       const again = page.getByRole('button', { name: '다른 사유로' });
@@ -257,7 +258,6 @@ test.describe('거절 관문', () => {
 
     // 사유마다 반전이 다르지만 결론은 항상 같다.
     const cases = [
-      { label: '너무 피곤해', verdict: '운동 권장' },
       { label: '비 올 것 같아', verdict: '실내 구장' },
       { label: '그냥 하고 싶지 않아', verdict: '사유 불충분' },
     ];
@@ -274,7 +274,7 @@ test.describe('거절 관문', () => {
     }
 
     // 기각된 사유는 다시 고를 수 없다.
-    await expect(page.locator('.reason-item.rejected')).toHaveCount(3);
+    await expect(page.locator('.reason-item.rejected')).toHaveCount(2);
 
     // 결국 거절은 성립하지 않는다.
     await page.getByRole('button', { name: '그냥 할래' }).click();
@@ -299,6 +299,30 @@ test.describe('거절 관문', () => {
     await expect(page.locator('.injury-stamp')).toContainText('참석 확정');
     // 제출한 값이 화면에 남아 있어야 한다 (내 노력이 근거로 쓰인 느낌).
     await expect(page.locator('.injury-file')).toContainText('1000');
+  });
+
+  test('⓪ 사유 심사: 입력값에 따라 반전이 갈리지만 결론은 항상 참석이다', async ({ page }) => {
+    // 낮게 답해도 높게 답해도 빠져나갈 수 없어야 한다.
+    const cases = [
+      { reason: '실력이 안 돼', input: '1', verdict: '겸손', stamp: '참석' },
+      { reason: '실력이 안 돼', input: '10', verdict: '주전', stamp: '참석' },
+      { reason: '너무 피곤해', input: '3', verdict: '운동 처방', stamp: '풋살' },
+      { reason: '너무 피곤해', input: '11', verdict: '과다 수면', stamp: '풋살' },
+    ];
+
+    for (const c of cases) {
+      await openGauntlet(page);
+      await page.locator('.reason-item').filter({ hasText: c.reason }).click();
+      await page.fill('#reasonText', c.input);
+      await page.getByRole('button', { name: '제출' }).click();
+
+      await expect(page.locator('.injury-verdict-head')).toContainText(c.verdict, {
+        timeout: 8000,
+      });
+      await expect(page.locator('.injury-stamp')).toContainText(c.stamp);
+      // 입력한 값이 판정문에 인용된다 — 내 답이 근거로 쓰인 느낌.
+      await expect(page.locator('.injury-verdict-body')).toContainText(c.input);
+    }
   });
 
   test('① 레버: 목표값에 정확히 맞춰도 달성 직전 배신당한다', async ({ page }) => {

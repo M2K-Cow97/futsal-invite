@@ -26,21 +26,30 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
   const [fileName, setFileName] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [rejected, setRejected] = useState<string[]>([]);
+  /** 입력값에 따라 갈리는 판정. `dynamic` 이 없는 사유는 기본 판정을 쓴다. */
+  const [ruling, setRuling] = useState<{
+    verdict: string;
+    resolution: string;
+    stamp: string;
+  } | null>(null);
 
   function pick(r: Reason) {
     setReason(r);
     setText('');
     setFileName(null);
     setStep(0);
+    setRuling(null);
     // 파일이나 텍스트를 요구하는 사유는 입력 단계를 거친다 —
     // 사용자가 뭔가 "제출" 해야 배신이 아프다.
     setPhase(r.needsFile || r.needsText ? 'input' : 'reviewing');
     if (!r.needsFile && !r.needsText) review(r);
   }
 
-  function review(r: Reason) {
+  function review(r: Reason, submitted = '') {
     setPhase('reviewing');
     setStep(0);
+    // 심사 시작 시점의 입력값으로 판정을 미리 계산해 둔다.
+    setRuling(r.dynamic?.(submitted) ?? null);
     r.steps.forEach((_, i) => {
       window.setTimeout(() => setStep(i + 1), (i + 1) * STEP_MS);
     });
@@ -58,7 +67,7 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
     if (!file || !reason) return;
     // 파일은 서버로 보내지 않는다. 이름·크기만 쓰고 참조를 버린다.
     setFileName(`${file.name} (${Math.max(1, Math.round(file.size / 1024))}KB)`);
-    review(reason);
+    review(reason, file.name);
   }
 
   const remaining = REASONS.filter((r) => !rejected.includes(r.id));
@@ -148,7 +157,7 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
                 type="button"
                 className="btn btn-accent btn-block"
                 disabled={!canSubmitText}
-                onClick={() => review(reason)}
+                onClick={() => review(reason, text)}
               >
                 제출
               </button>
@@ -178,9 +187,9 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
         <div className="injury-verdict">
           {fileName && <p className="injury-file">📄 {fileName}</p>}
           {reason.needsText && text && <p className="injury-file">✍️ {text}</p>}
-          <p className="injury-verdict-head">{reason.verdict}</p>
-          <p className="injury-verdict-body">{reason.resolution}</p>
-          <p className="injury-stamp">{reason.stamp}</p>
+          <p className="injury-verdict-head">{ruling?.verdict ?? reason.verdict}</p>
+          <p className="injury-verdict-body">{ruling?.resolution ?? reason.resolution}</p>
+          <p className="injury-stamp">{ruling?.stamp ?? reason.stamp}</p>
         </div>
       )}
 

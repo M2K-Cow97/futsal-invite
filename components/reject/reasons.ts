@@ -5,6 +5,9 @@
  * 되돌아온다. 사유마다 배신 방식이 다른 게 핵심 — 다 눌러보게 만든다.
  *
  * `resolution` 이 핵심 반전이고, `steps` 는 진짜 심사하는 척하는 연출이다.
+ *
+ * 일부 사유는 `dynamic` 으로 **입력값에 따라 다른 반전**을 준다.
+ * 어느 쪽으로 답해도 빠져나갈 수 없다는 게 드러나야 더 킹받는다.
  */
 
 export type Reason = {
@@ -21,6 +24,11 @@ export type Reason = {
   resolution: string;
   /** 도장 문구 */
   stamp: string;
+  /**
+   * 입력값에 반응하는 판정. 있으면 `verdict`/`resolution`/`stamp` 를 덮어쓴다.
+   * 숫자로 파싱되지 않으면 기본 판정을 쓴다.
+   */
+  dynamic?: (input: string) => { verdict: string; resolution: string; stamp: string } | null;
   /** 파일 첨부를 요구하는 사유인지 */
   needsFile?: { cta: string; sub: string };
   /** 텍스트 입력을 요구하는 사유인지 */
@@ -75,6 +83,31 @@ export const REASONS: Reason[] = [
       '팀 전력을 재계산한 결과 귀하의 실력은 결과에 영향을 주지 않습니다. 부담 없이 오세요.',
     stamp: '참석 확정',
     needsText: { label: '내 실력 (10점 만점)', placeholder: '1', maxLength: 2 },
+    // 낮게 써도 높게 써도 못 빠져나간다.
+    dynamic: (input) => {
+      const score = Number(input.trim());
+      if (!Number.isFinite(score)) return null;
+
+      if (score <= 3) {
+        return {
+          verdict: '✅ 겸손 판정',
+          resolution: `${score}점이라고 하셨지만 최근 경기 기록 대조 결과 실제 실력은 7점입니다. 겸손하시네요.`,
+          stamp: '실측 7점 · 참석 확정',
+        };
+      }
+      if (score >= 8) {
+        return {
+          verdict: '✅ 주전 확정',
+          resolution: `${score}점이면 팀 내 최고 수준입니다. 주전으로 등록되었으며 결장 시 전력 손실이 큽니다.`,
+          stamp: '주전 등록 · 참석 필수',
+        };
+      }
+      return {
+        verdict: '✅ 평균 판정',
+        resolution: `${score}점은 팀 평균과 정확히 일치합니다. 밸런스를 위해 반드시 필요한 전력입니다.`,
+        stamp: '밸런스 핵심 · 참석 확정',
+      };
+    },
   },
   {
     id: 'far',
@@ -103,12 +136,38 @@ export const REASONS: Reason[] = [
     id: 'tired',
     emoji: '😴',
     label: '너무 피곤해',
-    confirm: '피로도를 측정합니다.',
-    steps: ['수면 시간 추정…', '피로도 지수 산출…', '운동 효과 시뮬레이션…'],
+    confirm: '피로도를 측정합니다. 어제 수면 시간을 입력하세요.',
+    steps: ['수면 기록 대조…', '피로도 지수 산출…', '운동 효과 시뮬레이션…'],
     verdict: '✅ 운동 권장 판정',
     resolution:
       '피로 해소에는 가벼운 운동이 가장 효과적이라는 결론입니다. 풋살을 처방합니다.',
     stamp: '처방: 풋살 90분',
+    needsText: { label: '어제 몇 시간 잤나요', placeholder: '5', maxLength: 4 },
+    // 적게 잤어도 많이 잤어도 결론은 풋살이다.
+    dynamic: (input) => {
+      const hours = Number(input.trim());
+      if (!Number.isFinite(hours)) return null;
+
+      if (hours < 6) {
+        return {
+          verdict: '✅ 운동 처방',
+          resolution: `${hours}시간 수면은 피로 누적 상태입니다. 이런 경우 가벼운 운동이 특효라는 연구 결과가 있습니다.`,
+          stamp: '처방: 풋살 90분',
+        };
+      }
+      if (hours >= 9) {
+        return {
+          verdict: '✅ 과다 수면 판정',
+          resolution: `${hours}시간이나 주셨습니다. 과다 수면은 오히려 무기력을 유발합니다. 즉시 운동이 필요합니다.`,
+          stamp: '처방: 풋살 90분 (긴급)',
+        };
+      }
+      return {
+        verdict: '✅ 컨디션 양호',
+        resolution: `${hours}시간은 권장 수면 시간입니다. 피로할 이유가 없습니다. 컨디션 최상.`,
+        stamp: '컨디션 양호 · 참석 확정',
+      };
+    },
   },
   {
     id: 'nointerest',
