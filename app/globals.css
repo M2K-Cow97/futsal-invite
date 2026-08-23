@@ -1137,3 +1137,187 @@ body {
   font-weight: 700;
   text-align: right;
 }
+
+/* ─── 거절 관문: 사유 심사 ─────────────────────────
+   사유를 고르면 그 사유가 오히려 확정의 근거로 되돌아온다. */
+
+.reason-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 264px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reason-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: left;
+  background: #fff;
+  border: 1.5px solid var(--card-edge);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 140ms ease, transform 140ms ease;
+}
+
+.reason-item:hover:not(:disabled) {
+  border-color: var(--green);
+  transform: translateX(2px);
+}
+
+.reason-item:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.reason-item.rejected {
+  color: var(--ink-faint);
+  background: #f0f2ec;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.reason-emoji {
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.reason-label {
+  flex: 1;
+}
+
+.reason-mark {
+  flex-shrink: 0;
+  color: var(--ink-faint);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.reason-item.rejected .reason-mark {
+  color: #b3383c;
+}
+
+/* 파일 첨부 버튼 */
+
+.injury-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 26px 16px;
+  font-family: inherit;
+  color: var(--ink);
+  background: #fff;
+  border: 2px dashed var(--card-edge);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 140ms ease;
+}
+
+.injury-drop:hover {
+  border-color: var(--green);
+}
+
+.injury-drop-icon {
+  font-size: 34px;
+}
+
+.injury-drop-main {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.injury-drop-sub {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+/* 심사 진행 */
+
+.injury-review,
+.injury-verdict {
+  padding: 14px;
+  background: #fff;
+  border: 1.5px solid var(--card-edge);
+  border-radius: 14px;
+}
+
+.injury-file {
+  margin: 0 0 10px;
+  padding-bottom: 10px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  word-break: break-all;
+  border-bottom: 1px dashed var(--card-edge);
+}
+
+.injury-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.injury-steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  color: var(--ink-faint);
+  font-size: 12.5px;
+  transition: color 200ms ease;
+}
+
+.injury-steps li.active {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.injury-steps li.done {
+  color: var(--green);
+}
+
+.injury-step-mark {
+  width: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* 판정 */
+
+.injury-verdict-head {
+  margin: 0 0 8px;
+  color: var(--green);
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.injury-verdict-body {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.injury-stamp {
+  margin: 0;
+  padding: 8px;
+  color: #8a2b2f;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.04em;
+  background: #fbe5e6;
+  border: 1.5px solid #f3b6b8;
+  border-radius: 10px;
+  transform: rotate(-1.5deg);
+}

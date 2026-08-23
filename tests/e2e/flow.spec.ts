@@ -191,9 +191,9 @@ test.describe('모바일 터치', () => {
     }
     await expect(no).toHaveText('포기해.');
 
-    // 도망이 끝나면 탭이 거절 관문을 연다 — 여기서도 탭이 막히면 안 된다.
+    // 도망이 끝나면 탭이 거절 관문(사유 심사)을 연다 — 여기서도 탭이 막히면 안 된다.
     await no.tap({ timeout: 3000 });
-    await expect(page.locator('.lever-slider')).toBeVisible();
+    await expect(page.locator('.reason-list')).toBeVisible();
   });
 });
 
@@ -217,6 +217,18 @@ test.describe('거절 관문', () => {
     }
     await expect(no).toHaveText('포기해.');
     await no.click({ force: true });
+    await expect(page.locator('.reason-list')).toBeVisible();
+  }
+
+  /** 사유 심사를 2개 기각당해 다음 관문(레버)으로 넘어간다. */
+  async function skipReasons(page: import('@playwright/test').Page) {
+    for (const label of ['너무 피곤해', '비 올 것 같아']) {
+      await page.locator('.reason-item').filter({ hasText: label }).click();
+      await expect(page.locator('.injury-stamp')).toBeVisible({ timeout: 8000 });
+      const again = page.getByRole('button', { name: '다른 사유로' });
+      if (await again.isVisible()) await again.click();
+    }
+    await page.getByRole('button', { name: '다른 방법으로 거절' }).click();
     await expect(page.locator('.lever-slider')).toBeVisible();
   }
 
@@ -240,8 +252,58 @@ test.describe('거절 관문', () => {
     );
   }
 
+  test('⓪ 사유 심사: 어떤 사유를 골라도 참석 확정으로 뒤집힌다', async ({ page }) => {
+    await openGauntlet(page);
+
+    // 사유마다 반전이 다르지만 결론은 항상 같다.
+    const cases = [
+      { label: '너무 피곤해', verdict: '운동 권장' },
+      { label: '비 올 것 같아', verdict: '실내 구장' },
+      { label: '그냥 하고 싶지 않아', verdict: '사유 불충분' },
+    ];
+
+    for (const c of cases) {
+      await page.locator('.reason-item').filter({ hasText: c.label }).click();
+      await expect(page.locator('.injury-verdict-head')).toContainText(c.verdict, {
+        timeout: 8000,
+      });
+      // 도장은 언제나 참석/출전 쪽이다.
+      await expect(page.locator('.injury-stamp')).toBeVisible();
+      const again = page.getByRole('button', { name: '다른 사유로' });
+      if (await again.isVisible()) await again.click();
+    }
+
+    // 기각된 사유는 다시 고를 수 없다.
+    await expect(page.locator('.reason-item.rejected')).toHaveCount(3);
+
+    // 결국 거절은 성립하지 않는다.
+    await page.getByRole('button', { name: '그냥 할래' }).click();
+    await expect(page.getByRole('heading', { name: /나랑 풋살할래/ })).toBeVisible();
+  });
+
+  test('⓪ 사유 심사: 텍스트를 제출하면 그 내용이 확정 근거로 쓰인다', async ({ page }) => {
+    await openGauntlet(page);
+
+    await page.locator('.reason-item').filter({ hasText: '돈이 없어' }).click();
+    await expect(page.locator('#reasonText')).toBeVisible();
+
+    // 입력 전에는 제출할 수 없다.
+    await expect(page.getByRole('button', { name: '제출' })).toBeDisabled();
+    await page.fill('#reasonText', '1000');
+    await page.getByRole('button', { name: '제출' }).click();
+
+    // 회비를 면제해 주면서 참석을 확정시킨다.
+    await expect(page.locator('.injury-verdict-head')).toContainText('회비 전액 면제', {
+      timeout: 8000,
+    });
+    await expect(page.locator('.injury-stamp')).toContainText('참석 확정');
+    // 제출한 값이 화면에 남아 있어야 한다 (내 노력이 근거로 쓰인 느낌).
+    await expect(page.locator('.injury-file')).toContainText('1000');
+  });
+
   test('① 레버: 목표값에 정확히 맞춰도 달성 직전 배신당한다', async ({ page }) => {
     await openGauntlet(page);
+    await skipReasons(page);
 
     await setLever(page, 87.0);
     // 일단 "달성" 을 보여준다 — 이게 킹받는 지점이다.
@@ -252,7 +314,7 @@ test.describe('거절 관문', () => {
     await expect(page.locator('.lever-value')).not.toHaveText('87.00', { timeout: 4000 });
   });
 
-  /** 레버 → 기울기 → 프리킥 순서로 진행한다. */
+  /** 레버 단계를 실패로 통과시킨다. 사유 심사를 먼저 지난 상태여야 한다. */
   async function skipLever(page: import('@playwright/test').Page) {
     for (let i = 0; i < 4; i++) {
       await setLever(page, 20 + i);
@@ -285,6 +347,7 @@ test.describe('거절 관문', () => {
 
   test('② 기울기: 공을 세워도 센서 재보정으로 배신당한다', async ({ page }) => {
     await openGauntlet(page);
+    await skipReasons(page);
     await skipLever(page);
 
     await page.locator('.modal-actions .btn').first().click();
@@ -322,6 +385,7 @@ test.describe('거절 관문', () => {
       });
     });
     await openGauntlet(page);
+    await skipReasons(page);
     await skipLever(page);
 
     // 센서를 시도하지 않고 손가락 모드로 안내해야 한다.
@@ -348,6 +412,7 @@ test.describe('거절 관문', () => {
 
   test('③ 프리킥: 어떤 파워로도 골이 인정되지 않는다', async ({ page }) => {
     await openGauntlet(page);
+    await skipReasons(page);
     await skipLever(page);
     await skipTilt(page);
     await expect(page.locator('.pitch')).toBeVisible();
@@ -364,6 +429,7 @@ test.describe('거절 관문', () => {
 
   test('④ 약관: 끝까지 읽어도 동의 체크박스가 활성화되지 않는다', async ({ page }) => {
     await openGauntlet(page);
+    await skipReasons(page);
     await skipLever(page);
     await skipTilt(page);
     for (let i = 0; i < 3; i++) {

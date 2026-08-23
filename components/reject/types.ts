@@ -16,4 +16,4 @@ export type StageProps = {
   onClose: () => void;
 };
 
-export type StageId = 'lever' | 'tilt' | 'freekick' | 'keypad' | 'terms';
+export type StageId = 'reason' | 'lever' | 'tilt' | 'freekick' | 'keypad' | 'terms';
