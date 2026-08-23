@@ -1,8 +1,8 @@
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { internalError, notFound } from '@/lib/http';
-import { invites } from '@/lib/schema';
+import { invites, responses } from '@/lib/schema';
 import { isPastDate } from '@/lib/validation';
 
 /**
@@ -15,6 +15,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
     const [invite] = await db
       .select({
+        id: invites.id,
         hostName: invites.hostName,
         matchDate: invites.matchDate,
         matchTime: invites.matchTime,
@@ -26,10 +27,26 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
     if (!invite) return notFound();
 
+    /*
+     * 포지션별 현재 인원. 게스트가 "어디가 비었는지" 보고 고르게 한다.
+     * 이름은 내보내지 않는다 — 명단은 주최자(/m/{token})만 본다.
+     */
+    const rows = await db
+      .select({ position: responses.position, value: count() })
+      .from(responses)
+      .where(eq(responses.inviteId, invite.id))
+      .groupBy(responses.position);
+
+    const counts: Record<string, number> = { FW: 0, MF: 0, DF: 0, GK: 0 };
+    for (const r of rows) counts[r.position] = r.value;
+
+    const { id: _id, ...publicFields } = invite;
+
     return NextResponse.json({
-      ...invite,
+      ...publicFields,
       matchTime: invite.matchTime.slice(0, 5),
       isPast: isPastDate(invite.matchDate),
+      counts,
     });
   } catch (cause) {
     return internalError(cause);

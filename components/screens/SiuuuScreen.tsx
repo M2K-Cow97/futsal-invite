@@ -13,10 +13,10 @@ export function SiuuuScreen({ onNext }: { onNext: () => void }) {
       <MediaBox src="/assets/siu.gif" alt="SIU 셀러브레이션" fallback="🕺" />
 
       <h2 className="title siu-title">나도 좋siuuuuu 🔥</h2>
-      <p className="subtitle">그럼 언제 할까야?</p>
+      <p className="subtitle">경기는 이미 잡혀 있어. 참석만 확정하면 돼!</p>
 
       <button type="button" className="btn btn-accent btn-block" onClick={onNext}>
-        날짜 고르기 📅
+        참석 확정하기 📋
       </button>
     </div>
   );

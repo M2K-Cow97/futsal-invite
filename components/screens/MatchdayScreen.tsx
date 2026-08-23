@@ -85,8 +85,8 @@ export function MatchdayScreen({
 }) {
   return (
     <div className="screen">
-      <h2 className="title">Match Day 📅</h2>
-      <p className="subtitle">날짜, 시간, 구장은 이미 정해졌어!</p>
+      <h2 className="title">참석 확인 📋</h2>
+      <p className="subtitle">날짜·시간·구장은 이미 정해졌어. 이름만 알려줘!</p>
 
       {isPast && <p className="warn">이미 지난 경기예요 🥲</p>}
 
@@ -126,9 +126,9 @@ export function MatchdayScreen({
         disabled={guestName.trim().length === 0}
         onClick={onNext}
       >
-        다음 ➜
+        참석할래! ➜
       </button>
-      {guestName.trim().length === 0 && <p className="hint">이름을 입력해야 다음으로 갈 수 있어</p>}
+      {guestName.trim().length === 0 && <p className="hint">이름을 입력해야 참석 확정할 수 있어</p>}
     </div>
   );
 }

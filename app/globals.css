@@ -255,7 +255,7 @@ body {
 
 .invite-yes {
   position: absolute;
-  top: var(--ht-space-xxs);
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -485,6 +485,22 @@ body {
   font-size: var(--sys-body-tertiary-size);
 }
 
+/* 포지션별 현재 인원. 비어 있는 자리를 강조해 선택을 돕는다. */
+.position-btn .pos-count {
+  margin-top: var(--ht-space-xxxs);
+  padding: 2px var(--ht-space-xxs);
+  color: var(--app-ink-soft);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
+  background: var(--app-sunken);
+  border-radius: var(--sys-radius-pill);
+}
+
+.position-btn .pos-count.empty {
+  color: var(--sys-status-success-fg);
+  background: var(--sys-status-success-bg);
+}
+
 /* 팝업 — 06 Overlays */
 .modal-backdrop {
   position: fixed;
@@ -656,27 +672,38 @@ body {
 
 .link-row {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--ht-space-xxs);
 }
 
-.link-row input {
-  flex: 1;
+/*
+ * 좁은 화면에서 URL 이 칸 안에서 잘려 slug 가 안 보였다. 링크는 눈으로 확인해야
+ * 하는 값이므로 입력칸이 한 줄을 다 쓰게 하고 버튼을 아래로 내린다.
+ * font-size 는 16px 로 둔다 — readonly 여도 iOS 사파리는 포커스 시 확대하고,
+ * onFocus 에서 select() 를 호출해 포커스를 적극적으로 유도하고 있다.
+ */
+.link-url {
+  flex: 1 1 100%;
   min-width: 0;
-  padding: 10px;
+  margin: 0;
+  padding: var(--ht-space-xxs) calc(var(--ht-space-xxxs) * 3);
   font-family: var(--ht-font-mono);
-  /* 16px 미만이면 iOS 가 확대하지만, 이 필드는 readonly 라 안전하다 */
-  font-size: var(--sys-input-secondary-size);
+  font-size: var(--sys-body-tertiary-size);
+  line-height: 1.5;
   color: var(--app-ink-soft);
   background: var(--app-sunken);
   border: 1px solid var(--app-edge);
   border-radius: var(--sys-radius-sm);
+  /* 긴 URL 을 잘리지 않고 접어서 전부 보여준다 */
+  overflow-wrap: anywhere;
+  user-select: all;
 }
 
 .link-row .btn {
-  flex-shrink: 0;
+  flex: 1 1 auto;
   min-height: var(--sys-control-height-sm);
   padding: 0 var(--ht-space-xs);
-  font-size: var(--sys-button-tertiary-size);
+  font-size: var(--sys-button-secondary-size);
 }
 
 /* ─── 명단 (주최자) ────────────────────────────────── */
@@ -868,78 +895,58 @@ body {
   color: var(--app-danger-fg);
 }
 
-/* ① 정밀 레버 */
+/* ① 거절 버튼 조준 — 왕복 커서를 '거절' 버튼에 맞춘다 */
 
-.lever-readout {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: var(--ht-space-xs);
-  background: var(--app-card);
-  border: 1px solid var(--app-edge);
+.aim-track {
+  position: relative;
+  height: 64px;
+  margin-bottom: var(--ht-space-xxs);
+  background: var(--sys-field-surface);
   border-radius: var(--sys-radius-md);
+  overflow: hidden;
+  /* 커서가 트랙 밖으로 새지 않게 */
+  contain: paint;
 }
 
-.lever-value {
-  font-family: var(--ht-font-mono);
-  font-size: 34px;
-  font-weight: var(--ht-weight-bold);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: var(--ht-tracking-l);
-}
-
-.lever-value.near {
-  color: var(--app-green);
-}
-
-.lever-target {
-  color: var(--app-ink-faint);
-  font-size: var(--sys-body-tertiary-size);
-  font-weight: var(--ht-weight-bold);
-}
-
-.lever-slider {
-  width: 100%;
-  margin: var(--ht-space-xs) 0 4px;
-  accent-color: var(--app-green);
-}
-
-.lever-slider:disabled {
-  opacity: 0.5;
-}
-
-.lever-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--ht-space-xxs);
-  margin: 0;
-}
-
-.lever-stats div {
-  padding: var(--ht-space-xxs);
-  text-align: center;
-  background: var(--app-card);
-  border: 1px solid var(--app-edge);
+/* 맞춰야 하는 '거절' 버튼. 좁다. */
+.aim-target {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  min-width: 44px;
+  color: var(--app-danger-fg);
+  background: var(--app-danger-bg);
+  border: 2px solid var(--app-danger);
   border-radius: var(--sys-radius-sm);
 }
 
-.lever-stats dt {
-  margin: 0;
+.aim-target-label {
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
+  white-space: nowrap;
+}
+
+/* 왕복하는 조준선. transform 만 움직여 60fps 를 유지한다. */
+.aim-cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  margin-left: -1.5px;
+  background: var(--sys-accent-on-dark);
+  box-shadow: 0 0 8px var(--sys-accent-on-dark);
+}
+
+.aim-readout {
+  margin: 0 0 var(--ht-space-xxs);
   color: var(--app-ink-faint);
   font-size: var(--sys-label-tertiary-size);
   font-weight: var(--ht-weight-bold);
-}
-
-.lever-stats dd {
-  margin: 0;
-  font-family: var(--ht-font-mono);
-  font-size: var(--sys-label-secondary-size);
-  font-weight: var(--ht-weight-bold);
-}
-
-.lever-stats dd.near {
-  color: var(--app-green);
+  text-align: right;
 }
 
 /* ② 프리킥 */

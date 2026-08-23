@@ -6,11 +6,14 @@ import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
-/** 목표 구역(트랙 중앙 기준 %). 좁지만 도달 가능하다. */
+/**
+ * 목표 구역(트랙 중앙 기준 %). 얇다 — 정확히 세워야 한다.
+ * 어차피 성공해도 배신당하는 단계라, 쉽게 통과하면 오히려 시시하다.
+ */
 const ZONE_CENTER = 50;
-const ZONE_HALF = 7;
+const ZONE_HALF = 3;
 /** 이만큼 버티면 "달성" 처럼 보이게 한 뒤 배신한다. */
-const HOLD_MS = 2000;
+const HOLD_MS = 2500;
 const GIVE_UP_AFTER = 1;
 
 type Phase = 'intro' | 'playing' | 'almost' | 'betrayed' | 'fallback';
@@ -73,7 +76,7 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
         posRef.current = posRef.current > 50 ? 8 : 92;
         velRef.current = 0;
         heldRef.current = 0;
-        driftRef.current = (Math.random() - 0.5) * 0.012;
+        driftRef.current = (Math.random() - 0.5) * 0.02;
         setBall(posRef.current);
         setHeld(0);
         setMessage(null);
@@ -97,17 +100,19 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
 
       if (phaseRef.current === 'playing' || phaseRef.current === 'fallback') {
         // 기울기 가속 + 미세한 편향(재보정 후 바닥이 기울어져 있다)
-        velRef.current += (tiltRef.current * 0.012 + driftRef.current) * dt;
-        velRef.current *= 0.9; // 감쇠 — 미끄럽지만 제어 가능한 정도
+        // 가속을 키우고 감쇠를 줄였다 — 예민하고 미끄럽다. 살짝만 기울여도
+        // 확 구르고, 멈추려면 반대로 기울여 잡아야 한다(오버슈트가 잘 난다).
+        velRef.current += (tiltRef.current * 0.026 + driftRef.current) * dt;
+        velRef.current *= 0.94;
         posRef.current += velRef.current * dt * 0.05;
 
         // 벽에 튕긴다
         if (posRef.current < 2) {
           posRef.current = 2;
-          velRef.current = Math.abs(velRef.current) * 0.35;
+          velRef.current = Math.abs(velRef.current) * 0.55;
         } else if (posRef.current > 98) {
           posRef.current = 98;
-          velRef.current = -Math.abs(velRef.current) * 0.35;
+          velRef.current = -Math.abs(velRef.current) * 0.55;
         }
 
         setBall(posRef.current);
@@ -198,7 +203,7 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
 
   return (
     <RejectShell
-      title="거절 각도 보정"
+      title="거절 각 재기 📐"
       subtitle={
         usingTilt
           ? '폰을 좌우로 기울여 공을 초록 구역에 2초간 세우세요.'

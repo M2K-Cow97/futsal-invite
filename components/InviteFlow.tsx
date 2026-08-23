@@ -21,11 +21,14 @@ export function InviteFlow({
   hostName,
   match,
   isPast,
+  counts,
 }: {
   slug: string;
   hostName: string;
   match: MatchInfo;
   isPast: boolean;
+  /** 포지션별 현재 인원. 조회 실패 시 null — 그때는 인원을 감춘다. */
+  counts: Record<string, number> | null;
 }) {
   const [screen, setScreen] = useState<Screen>('invite');
   const [guestName, setGuestName] = useState('');
@@ -39,7 +42,8 @@ export function InviteFlow({
     setScreen('siuuu');
   }
 
-  async function submitPosition(position: Exclude<Position, 'FW'>) {
+  // FW 도 선택 가능하다. 예전에는 팝업으로 막았지만 지금은 인원만 보여준다.
+  async function submitPosition(position: Position) {
     setSubmitting(true);
     setError(null);
     try {
@@ -92,7 +96,12 @@ export function InviteFlow({
         )}
 
         {screen === 'position' && (
-          <PositionScreen submitting={submitting} error={error} onSelect={submitPosition} />
+          <PositionScreen
+            submitting={submitting}
+            error={error}
+            counts={counts}
+            onSelect={submitPosition}
+          />
         )}
 
         {screen === 'ticket' && ticket && <TicketScreen ticket={ticket} />}

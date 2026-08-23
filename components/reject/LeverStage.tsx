@@ -1,137 +1,176 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { buzz } from '@/lib/tilt';
 import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
-const TARGET = 87.0;
-/** 이 오차 안에 들어오면 "달성" 처럼 보이게 하고, 곧바로 배신한다. */
-const NEAR = 0.05;
-/** 이만큼 실패하면 다음 관문으로 넘어갈 수 있게 해준다. */
-const GIVE_UP_AFTER = 4;
+/**
+ * 거절 버튼의 반폭(트랙 대비 %). 좁다 —
+ * 어차피 맞춰도 배신당하는 단계라 쉽게 통과하면 시시하다.
+ */
+const ZONE_HALF = 3.2;
+/** 이만큼 시도하면 다음 관문으로 넘어갈 수 있게 해준다. */
+const GIVE_UP_AFTER = 3;
+/** 커서가 왕복하는 속도(%/초). */
+const SPEED = 58;
 
-type Phase = 'adjusting' | 'almost' | 'betrayed';
+type Phase = 'ready' | 'running' | 'almost' | 'betrayed' | 'missed';
 
+/**
+ * ① 거절 버튼 조준 — 움직이는 커서를 "거절" 버튼에 맞춘다.
+ *
+ * 예전에는 슬라이더를 87.00 에 맞추는 숫자 게임이었다. 정밀하긴 했지만 무엇을
+ * 왜 맞추는지 감각이 없어 와닿지 않았다. 이제 실제로 **거절 버튼**을 조준한다:
+ * 커서가 좌우로 왕복하고, 버튼 위에서 멈추면 거절이 접수된다.
+ *
+ * 물론 접수되지 않는다. 맞추면 "버튼 위치 오차" 라며 버튼을 옮긴다.
+ */
 export function LeverStage({ onGiveUp, onClose }: StageProps) {
-  /** 연출 타이머. 언마운트 시 자동 정리된다. */
   const timers = useTimers();
-  const [value, setValue] = useState(55.2);
-  const [phase, setPhase] = useState<Phase>('adjusting');
+
+  const [phase, setPhase] = useState<Phase>('ready');
+  const [cursor, setCursor] = useState(4);
+  /** 거절 버튼의 중심 위치(%). 배신할 때마다 옮긴다. */
+  const [target, setTarget] = useState(50);
   const [attempts, setAttempts] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
-  const draggingRef = useRef(false);
-  /*
-   * release() 는 전역 pointerup 리스너로 불린다. 렌더 시점의 value 를 클로저로
-   * 잡으면, 슬라이더를 목표값에 놓고 같은 tick 에 손을 떼는 경우(정확히 잘 맞춘
-   * 사용자!) diff 가 한 렌더 뒤처져 '달성' 연출을 놓친다. ref 로 최신값을 읽는다.
-   */
-  const valueRef = useRef(value);
-  valueRef.current = value;
 
-  const diff = Math.abs(value - TARGET);
+  const posRef = useRef(4);
+  const dirRef = useRef(1);
+  const rafRef = useRef<number | null>(null);
+  const targetRef = useRef(50);
+  const phaseRef = useRef<Phase>('ready');
 
-  /**
-   * 손을 뗄 때마다 바늘이 흔들린다.
-   * 목표에 거의 닿았으면 "달성" 을 잠깐 보여주고 리셋한다 — 이게 이 스테이지의 핵심이다.
-   */
-  const release = useCallback(() => {
-    if (!draggingRef.current) return;
-    draggingRef.current = false;
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
-    setAttempts((n) => n + 1);
+  useEffect(() => {
+    targetRef.current = target;
+  }, [target]);
 
-    // 렌더 시점의 diff 가 아니라 손을 뗀 순간의 값으로 판정한다.
-    const liveDiff = Math.abs(valueRef.current - TARGET);
+  /** 커서 왕복 루프. */
+  useEffect(() => {
+    if (phase !== 'running') return;
+    let last = performance.now();
 
-    if (liveDiff <= NEAR) {
-      setPhase('almost');
-      setMessage('✨ 달성! …잠시만요');
+    function tick(now: number) {
+      const dt = Math.min(48, now - last);
+      last = now;
+
+      posRef.current += dirRef.current * SPEED * (dt / 1000);
+      if (posRef.current >= 96) {
+        posRef.current = 96;
+        dirRef.current = -1;
+      } else if (posRef.current <= 4) {
+        posRef.current = 4;
+        dirRef.current = 1;
+      }
+      setCursor(posRef.current);
+      rafRef.current = requestAnimationFrame(tick);
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [phase]);
+
+  /** 맞췄다 → 곧바로 배신. 버튼이 "미세하게 이동" 한다. */
+  const betray = useCallback(() => {
+    setPhase('almost');
+    setMessage('✨ 거절 버튼 조준 성공! …접수 중');
+    buzz(30);
+
+    timers.set(() => {
+      setPhase('betrayed');
+      setMessage('⚠ 버튼 위치 오차가 감지되었습니다. 재배치합니다');
+      buzz([40, 60, 40]);
+      setAttempts((n) => n + 1);
+
       timers.set(() => {
-        setPhase('betrayed');
-        setMessage('⚠ 장치 재교정이 필요합니다');
-        // 처음보다 더 먼 곳으로 보낸다.
-        timers.set(() => {
-          setValue(12.4 + Math.random() * 70);
-          setPhase('adjusting');
-          setMessage(null);
-        }, 1100);
-      }, 800);
+        // 방금 맞춘 자리가 아니게, 커서 반대편으로 옮긴다.
+        const next = posRef.current > 50 ? 18 + Math.random() * 16 : 66 + Math.random() * 16;
+        setTarget(next);
+        setMessage(null);
+        setPhase('running');
+      }, 1200);
+    }, 900);
+  }, [timers]);
+
+  /** 조준 시도. */
+  const fire = useCallback(() => {
+    if (phaseRef.current !== 'running') return;
+
+    if (Math.abs(posRef.current - targetRef.current) <= ZONE_HALF) {
+      betray();
       return;
     }
 
-    // 아직 멀면 살짝 틀어지기만 한다. 가까울수록 더 많이 떨린다.
-    const jitter = liveDiff < 1 ? 0.9 : liveDiff < 5 ? 0.4 : 0.15;
-    setValue((v) => {
-      const next = v + (Math.random() - 0.5) * 2 * jitter * 6;
-      return Math.min(100, Math.max(0, next));
-    });
-    setMessage(liveDiff < 0.3 ? '아주 조금만 더…' : null);
-  }, [timers]);
+    setAttempts((n) => n + 1);
+    setPhase('missed');
+    setMessage('빗나갔습니다. 거절 버튼을 정확히 누르세요');
+    buzz(20);
+    timers.set(() => {
+      setMessage(null);
+      setPhase('running');
+    }, 700);
+  }, [betray, timers]);
 
-  // 슬라이더 밖에서 손을 떼도 잡히게 전역으로 듣는다.
-  useEffect(() => {
-    window.addEventListener('pointerup', release);
-    window.addEventListener('touchend', release);
-    return () => {
-      window.removeEventListener('pointerup', release);
-      window.removeEventListener('touchend', release);
-    };
-  }, [release]);
-
-  const locked = phase !== 'adjusting';
+  const running = phase === 'running';
 
   return (
     <RejectShell
-      title="정밀 거절 장치"
-      subtitle={`거절을 확정하려면 레버를 정확히 ${TARGET.toFixed(2)} 에 맞추세요.`}
+      title="거절 버튼 조준 🎯"
+      subtitle="커서가 '거절' 버튼에 겹칠 때 멈추세요. 정확히 맞춰야 접수됩니다."
     >
-      <div className="lever-readout">
-        <span className={`lever-value${diff <= NEAR ? ' near' : ''}`}>{value.toFixed(2)}</span>
-        <span className="lever-target">목표 {TARGET.toFixed(2)}</span>
+      <div className="aim-track">
+        <div
+          className="aim-target"
+          style={{ left: `${target - ZONE_HALF}%`, width: `${ZONE_HALF * 2}%` }}
+        >
+          <span className="aim-target-label">거절</span>
+        </div>
+        <div className="aim-cursor" style={{ left: `${cursor}%` }} aria-hidden="true" />
       </div>
 
-      <input
-        className="lever-slider"
-        type="range"
-        min={0}
-        max={100}
-        step={0.01}
-        value={value}
-        disabled={locked}
-        aria-label="거절 정밀도 레버"
-        onPointerDown={() => {
-          draggingRef.current = true;
-        }}
-        onTouchStart={() => {
-          draggingRef.current = true;
-        }}
-        onChange={(e) => setValue(Number(e.target.value))}
-      />
-
-      <dl className="lever-stats">
-        <div>
-          <dt>오차</dt>
-          <dd className={diff <= NEAR ? 'near' : ''}>{diff.toFixed(2)}</dd>
-        </div>
-        <div>
-          <dt>시도</dt>
-          <dd>{attempts}회</dd>
-        </div>
-      </dl>
+      <p className="aim-readout">시도 {attempts}회</p>
 
       {message ? (
-        <p className={`lever-msg${phase === 'betrayed' ? ' bad' : ''}`}>{message}</p>
+        <p className={`lever-msg${phase === 'betrayed' || phase === 'missed' ? ' bad' : ''}`}>
+          {message}
+        </p>
       ) : (
-        <p className="lever-hint">⚠ 레버에서 손을 떼면 장치가 미세하게 헐거워집니다</p>
+        <p className="lever-hint">⚠ 버튼이 작습니다. 커서가 정확히 겹칠 때 누르세요</p>
       )}
 
-      <div className="modal-actions">
+      {phase === 'ready' ? (
+        <button
+          type="button"
+          className="btn btn-primary btn-block"
+          onClick={() => setPhase('running')}
+        >
+          조준 시작
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="btn btn-primary btn-block"
+          disabled={!running}
+          onClick={fire}
+        >
+          지금! 멈춰
+        </button>
+      )}
+
+      <div className="reject-footer modal-actions">
         <button type="button" className="btn btn-ghost" onClick={onClose}>
           그냥 할래
         </button>
         {attempts >= GIVE_UP_AFTER && (
-          <button type="button" className="btn btn-primary" onClick={onGiveUp}>
+          <button type="button" className="btn btn-accent" onClick={onGiveUp}>
             다른 방법으로 거절
           </button>
         )}

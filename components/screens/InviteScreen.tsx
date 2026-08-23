@@ -187,7 +187,9 @@ export function InviteScreen({
           style={
             pos
               ? { transform: `translate(${pos.x}px, ${pos.y}px)`, left: 0, top: 0 }
-              : { left: '50%', top: 78, transform: 'translateX(-50%)' }
+              : // "좋아!"(높이 56, top 0) 아래로 24px 띄운다. 예전 78 은 간격이
+                // 14px 밖에 안 돼 두 버튼이 붙어 보이고 오탭 위험도 있었다.
+                { left: '50%', top: 80, transform: 'translateX(-50%)' }
           }
           onMouseEnter={flee}
           onTouchStart={flee}

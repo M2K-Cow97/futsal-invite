@@ -1,9 +1,9 @@
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { InviteFlow } from '@/components/InviteFlow';
 import { db } from '@/lib/db';
-import { invites } from '@/lib/schema';
+import { invites, responses } from '@/lib/schema';
 import { isPastDate } from '@/lib/validation';
 
 type Props = { params: Promise<{ slug: string }> };
@@ -12,6 +12,7 @@ type Props = { params: Promise<{ slug: string }> };
 async function loadInvite(slug: string) {
   const [invite] = await db
     .select({
+      id: invites.id,
       hostName: invites.hostName,
       matchDate: invites.matchDate,
       matchTime: invites.matchTime,
@@ -22,6 +23,22 @@ async function loadInvite(slug: string) {
     .limit(1);
 
   return invite ?? null;
+}
+
+/**
+ * 포지션별 현재 인원. 게스트가 어디가 비었는지 보고 고르게 한다.
+ * 이름은 읽지 않는다 — 명단은 주최자(/m/{token})만 본다.
+ */
+async function loadCounts(inviteId: number) {
+  const rows = await db
+    .select({ position: responses.position, value: count() })
+    .from(responses)
+    .where(eq(responses.inviteId, inviteId))
+    .groupBy(responses.position);
+
+  const counts: Record<string, number> = { FW: 0, MF: 0, DF: 0, GK: 0 };
+  for (const r of rows) counts[r.position] = r.value;
+  return counts;
 }
 
 /** 카톡 링크 미리보기 (spec FR-011) */
@@ -56,10 +73,13 @@ export default async function InvitePage({ params }: Props) {
 
   if (!invite) notFound();
 
+  const counts = await loadCounts(invite.id).catch(() => null);
+
   return (
     <InviteFlow
       slug={slug}
       hostName={invite.hostName}
+      counts={counts}
       match={{
         matchDate: invite.matchDate,
         matchTime: invite.matchTime.slice(0, 5),
