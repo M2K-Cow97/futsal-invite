@@ -36,11 +36,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${invite.hostName}이(가) 풋살에 초대했어요 ⚽`;
   const description = `${invite.matchDate} ${invite.matchTime.slice(0, 5)} · ${invite.venue}`;
 
+  /*
+   * openGraph.images 를 지정하지 않으면 app/opengraph-image.tsx 가 자동으로
+   * 상속된다. 그 이미지는 초대장 내용을 담지 않는 고정 이미지다 —
+   * 주최자 이름·구장은 링크를 실제로 연 사람만 보게 둔다(카톡 서버에 남지 않게).
+   * 반면 title/description 은 미리보기 텍스트로 필요하므로 넣는다.
+   */
   return {
     title,
     description,
-    openGraph: { title, description, type: 'website' },
-    twitter: { card: 'summary', title, description },
+    openGraph: { title, description, type: 'website', locale: 'ko_KR' },
+    twitter: { card: 'summary_large_image', title, description },
   };
 }
 
