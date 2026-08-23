@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { POST as createInvite } from '@/app/api/invites/route';
 import { POST as createResponse } from '@/app/api/responses/route';
@@ -98,6 +99,33 @@ describe('POST /api/responses', () => {
     const res = await respond('nope123456', '민수', 'MF');
     expect(res.status).toBe(404);
     expect((await res.json()).error).toBe('not_found');
+  });
+
+  it('응답 수 상한을 넘으면 400 이지만, 기존 참석자의 포지션 변경은 허용한다', async () => {
+    const invite = await makeInvite('상한테스트장');
+    const [row] = await testDb
+      .select({ id: invites.id })
+      .from(invites)
+      .where(eq(invites.slug, invite.slug));
+
+    // 상한(100)까지 직접 채운다. API 로 100번 돌리면 테스트가 느려진다.
+    await testDb.insert(responses).values(
+      Array.from({ length: 100 }, (_, i) => ({
+        inviteId: row.id,
+        guestName: `채움${i}`,
+        position: 'MF' as const,
+      })),
+    );
+
+    // 새 이름은 거부된다.
+    const blocked = await respond(invite.slug, '초과자', 'DF');
+    expect(blocked.status).toBe(400);
+    expect((await blocked.json()).error).toBe('response_limit');
+
+    // 이미 등록된 이름은 행이 늘지 않으므로 포지션 변경이 된다.
+    const update = await respond(invite.slug, '채움0', 'GK');
+    expect(update.status).toBe(200);
+    expect((await update.json()).position).toBe('GK');
   });
 
   it('경기 날짜가 지난 초대장은 마감돼 400 이다', async () => {

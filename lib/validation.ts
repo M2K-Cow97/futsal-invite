@@ -1,12 +1,25 @@
 import { z } from 'zod';
 
-/** 오늘 날짜를 로컬 타임존 기준 YYYY-MM-DD 로. UTC 변환 시 하루 밀리는 것을 막는다. */
+/**
+ * 경기 날짜 판정의 기준 타임존. 한국 사용자를 위한 서비스이므로 KST 로 고정한다.
+ *
+ * 로컬 타임존(new Date().getFullYear() 등)을 쓰면 실행 환경에 따라 답이 달라진다.
+ * Vercel 서버리스는 UTC 로 도는데 KST 는 UTC+9 라서, 매일 KST 00:00~09:00 의
+ * 9시간 동안 서버가 "어제" 를 오늘로 본다 — 그 사이에는 이미 끝난 경기에도
+ * 참석 등록이 통과한다. 브라우저(KST)와 서버(UTC)가 서로 다른 날짜를 보는
+ * 문제도 같은 원인이다. 그래서 양쪽 모두 이 함수를 통해 KST 로 판단한다.
+ */
+const MATCH_TIMEZONE = 'Asia/Seoul';
+
+/** 오늘 날짜를 KST 기준 YYYY-MM-DD 로. 실행 환경의 타임존과 무관하다. */
 export function todayISO(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  // en-CA 로케일이 YYYY-MM-DD 형식을 낸다.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: MATCH_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
 }
 
 /** 공백만 입력한 이름/구장을 거부한다 (spec FR-012). */

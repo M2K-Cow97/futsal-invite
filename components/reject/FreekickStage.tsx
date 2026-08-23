@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
+import { useTimers } from './useTimers';
 
 const GIVE_UP_AFTER = 3;
 
@@ -19,6 +20,8 @@ const EXCUSES = [
 type Phase = 'aiming' | 'flying' | 'result';
 
 export function FreekickStage({ onGiveUp, onClose }: StageProps) {
+  /** 연출 타이머. 언마운트 시 자동 정리된다. */
+  const timers = useTimers();
   const [power, setPower] = useState(0);
   const [phase, setPhase] = useState<Phase>('aiming');
   const [attempts, setAttempts] = useState(0);
@@ -62,7 +65,7 @@ export function FreekickStage({ onGiveUp, onClose }: StageProps) {
     // 공은 항상 골키퍼까지 날아간다. 파워가 완벽해도 결과는 같다.
     setBallX(72);
 
-    window.setTimeout(() => {
+    timers.set(() => {
       setAttempts((n) => n + 1);
       setExcuse(EXCUSES[Math.floor(Math.random() * EXCUSES.length)]);
       setPhase('result');

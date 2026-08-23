@@ -45,8 +45,13 @@ function createDb() {
   return drizzle(
     new Pool({
       connectionString: url,
-      // 관리형 Postgres 는 SSL 필수. 자체 인증서라 rejectUnauthorized 는 끈다.
-      ssl: isLocal ? undefined : { rejectUnauthorized: false },
+      /*
+       * 관리형 Postgres 는 SSL 필수. Supabase·Neon 모두 공개 CA 체인을 쓰므로
+       * 인증서 검증을 켠 채로 붙는다 — 검증을 끄면 암호화는 남지만 능동적
+       * MITM 에 DB 비밀번호와 쿼리가 노출된다.
+       * 자체 서명 인증서를 쓰는 DB 로 옮기면 ssl.ca 로 인증서를 넘긴다.
+       */
+      ssl: isLocal ? undefined : { rejectUnauthorized: true },
       max: isLocal ? 10 : 1,
       idleTimeoutMillis: isLocal ? 30_000 : 10_000,
       connectionTimeoutMillis: 10_000,

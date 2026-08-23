@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
+import { useTimers } from './useTimers';
 
 /** 처음 보이는 조항 수. 끝에 닿을 때마다 늘어난다. */
 const INITIAL_CLAUSES = 40;
@@ -24,6 +25,8 @@ const CLAUSE_TEXT = [
 ];
 
 export function TermsStage({ onClose }: StageProps) {
+  /** 연출 타이머. 언마운트 시 자동 정리된다. */
+  const timers = useTimers();
   const boxRef = useRef<HTMLDivElement>(null);
   const [clauses, setClauses] = useState(INITIAL_CLAUSES);
   const [betrayals, setBetrayals] = useState(0);
@@ -53,7 +56,7 @@ export function TermsStage({ onClose }: StageProps) {
       setFlash(n === 1 ? '조항이 추가되었습니다' : '개정된 약관이 반영되었습니다');
       // 위로 튕겨 올린다.
       el.scrollTop = Math.max(0, el.scrollTop - el.clientHeight * 2.2);
-      window.setTimeout(() => setFlash(null), 1400);
+      timers.set(() => setFlash(null), 1400);
     }
   }
 

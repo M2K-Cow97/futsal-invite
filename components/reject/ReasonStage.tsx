@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { RejectShell } from './RejectShell';
 import { REASONS, type Reason } from './reasons';
 import type { StageProps } from './types';
+import { useTimers } from './useTimers';
 
 const STEP_MS = 620;
 /** 사유를 이만큼 기각당하면 다음 관문으로 넘어갈 수 있다. */
@@ -19,6 +20,8 @@ type Phase = 'menu' | 'input' | 'reviewing' | 'verdict';
  * 사유마다 반전이 달라서 다 눌러보게 된다.
  */
 export function ReasonStage({ onGiveUp, onClose }: StageProps) {
+  /** 심사 연출 타이머. 언마운트/재심사 시 정리된다. */
+  const timers = useTimers();
   const fileRef = useRef<HTMLInputElement>(null);
   const [phase, setPhase] = useState<Phase>('menu');
   const [reason, setReason] = useState<Reason | null>(null);
@@ -46,14 +49,17 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
   }
 
   function review(r: Reason, submitted = '') {
+    // 이전 심사가 아직 돌고 있으면 취소한다. 겹치면 새 심사가 중간에
+    // verdict 로 건너뛰고 기각 목록이 어긋난다.
+    timers.clear();
     setPhase('reviewing');
     setStep(0);
     // 심사 시작 시점의 입력값으로 판정을 미리 계산해 둔다.
     setRuling(r.dynamic?.(submitted) ?? null);
     r.steps.forEach((_, i) => {
-      window.setTimeout(() => setStep(i + 1), (i + 1) * STEP_MS);
+      timers.set(() => setStep(i + 1), (i + 1) * STEP_MS);
     });
-    window.setTimeout(
+    timers.set(
       () => {
         setRejected((prev) => (prev.includes(r.id) ? prev : [...prev, r.id]));
         setPhase('verdict');

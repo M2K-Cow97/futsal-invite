@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
+import { useTimers } from './useTimers';
 
 const GIVE_UP_AFTER = 4;
 
@@ -19,6 +20,8 @@ const HINTS = [
 ];
 
 export function KeypadStage({ onGiveUp, onClose }: StageProps) {
+  /** 연출 타이머. 언마운트 시 자동 정리된다. */
+  const timers = useTimers();
   const [entry, setEntry] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [hint, setHint] = useState(HINTS[0]);
@@ -37,7 +40,7 @@ export function KeypadStage({ onGiveUp, onClose }: StageProps) {
     setError(null);
 
     // 잠깐 "확인하는 척" 해야 진짜 같다.
-    window.setTimeout(() => {
+    timers.set(() => {
       const n = attempts + 1;
       setAttempts(n);
       setError('❌ 틀렸습니다');

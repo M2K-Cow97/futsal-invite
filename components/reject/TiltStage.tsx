@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { buzz, detectTilt, isInAppBrowser, onTilt, requestTilt, type TiltSupport } from '@/lib/tilt';
 import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
+import { useTimers } from './useTimers';
 
 /** 목표 구역(트랙 중앙 기준 %). 좁지만 도달 가능하다. */
 const ZONE_CENTER = 50;
@@ -50,6 +51,9 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
     phaseRef.current = phase;
   }, [phase]);
 
+  /** 연출 타이머. 언마운트/스테이지 전환 시 자동 정리된다. */
+  const timers = useTimers();
+
   /** 달성 직전 배신. 이 게임의 핵심이다. */
   const betray = useCallback(() => {
     setPhase('almost');
@@ -57,14 +61,14 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
     setMessage('✨ 안정화 완료! …검증 중');
     buzz(30);
 
-    window.setTimeout(() => {
+    timers.set(() => {
       setPhase('betrayed');
       phaseRef.current = 'betrayed';
       setMessage('⚠ 센서 오차가 감지되었습니다. 재보정합니다');
       buzz([40, 60, 40]);
       setAttempts((n) => n + 1);
 
-      window.setTimeout(() => {
+      timers.set(() => {
         // 반대편 끝으로 보내고 바닥을 기울여 놓는다.
         posRef.current = posRef.current > 50 ? 8 : 92;
         velRef.current = 0;
@@ -79,7 +83,7 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
         phaseRef.current = resume;
       }, 1300);
     }, 900);
-  }, []);
+  }, [timers]);
 
   /** 물리 루프: 기울기 → 가속 → 위치. 미끄러운 바닥 느낌. */
   useEffect(() => {
