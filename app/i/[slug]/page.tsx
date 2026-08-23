@@ -17,6 +17,7 @@ async function loadInvite(slug: string) {
       matchDate: invites.matchDate,
       matchTime: invites.matchTime,
       venue: invites.venue,
+      matchUrl: invites.matchUrl,
     })
     .from(invites)
     .where(eq(invites.slug, slug))
@@ -84,6 +85,7 @@ export default async function InvitePage({ params }: Props) {
         matchDate: invite.matchDate,
         matchTime: invite.matchTime.slice(0, 5),
         venue: invite.venue,
+        matchUrl: invite.matchUrl,
       }}
       isPast={isPastDate(invite.matchDate)}
     />

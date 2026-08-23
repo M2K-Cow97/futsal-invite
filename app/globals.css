@@ -485,6 +485,26 @@ body {
   font-size: var(--sys-body-tertiary-size);
 }
 
+/* 선택 항목 라벨 뱃지 */
+.label-optional {
+  margin-left: var(--ht-space-xxxs);
+  padding: 1px var(--ht-space-xxs);
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-regular);
+  background: var(--app-sunken);
+  border-radius: var(--sys-radius-pill);
+  vertical-align: middle;
+}
+
+/* 경기 예약 페이지 링크. 스킴은 서버에서 http/https 로 제한한다. */
+.match-link {
+  color: var(--sys-text-accent);
+  font-weight: var(--ht-weight-bold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* 포지션별 현재 인원. 비어 있는 자리를 강조해 선택을 돕는다. */
 .position-btn .pos-count {
   margin-top: var(--ht-space-xxxs);

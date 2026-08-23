@@ -8,7 +8,13 @@
  * - readonly: 초대 흐름. 주최자가 정한 일정을 보여주고 게스트 이름만 받는다.
  */
 
-export type MatchInfo = { matchDate: string; matchTime: string; venue: string };
+export type MatchInfo = {
+  matchDate: string;
+  matchTime: string;
+  venue: string;
+  /** 플랩·매치 등 경기 예약 페이지 링크. 주최자가 넣지 않았으면 null. */
+  matchUrl?: string | null;
+};
 
 function formatDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number);
@@ -66,6 +72,25 @@ export function MatchdayEditor({
           onChange={(e) => onChange({ ...value, venue: e.target.value })}
         />
       </div>
+
+      <div className="field">
+        <label className="label" htmlFor="matchUrl">
+          경기 링크 <span className="label-optional">선택</span>
+        </label>
+        <input
+          id="matchUrl"
+          className="input"
+          type="url"
+          inputMode="url"
+          maxLength={500}
+          placeholder="플랩 등 예약 페이지 주소…"
+          value={value.matchUrl ?? ''}
+          onChange={(e) => onChange({ ...value, matchUrl: e.target.value })}
+        />
+        <p className="hint" style={{ textAlign: 'left' }}>
+          붙여넣으면 초대장에서 구장 위치·회비를 바로 확인할 수 있어요
+        </p>
+      </div>
     </>
   );
 }
@@ -103,6 +128,22 @@ export function MatchdayScreen({
           <dt>구장</dt>
           <dd>{match.venue}</dd>
         </div>
+        {match.matchUrl && (
+          <div className="readonly-row">
+            <dt>경기 정보</dt>
+            <dd>
+              {/* 스킴은 서버(zod)에서 http/https 로 제한했다. */}
+              <a
+                className="match-link"
+                href={match.matchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                예약 페이지 열기 ↗
+              </a>
+            </dd>
+          </div>
+        )}
       </dl>
 
       <div className="field">

@@ -37,11 +37,38 @@ const timeString = z
 
 export const POSITIONS = ['FW', 'MF', 'DF', 'GK'] as const;
 
+/**
+ * 경기 예약 페이지 링크(플랩·매치 등). 선택 항목이다.
+ *
+ * 이 값은 화면에서 <a href> 로 렌더되므로 스킴을 http/https 로 제한한다.
+ * 제한하지 않으면 `javascript:alert(1)` 같은 값이 클릭 가능한 링크가 되어
+ * XSS 가 된다 — React 의 자동 이스케이프는 href 스킴을 막아주지 않는다.
+ */
+const matchUrlString = z
+  .string()
+  .transform((v) => v.trim())
+  .pipe(z.string().max(500))
+  .refine(
+    (v) => {
+      if (v === '') return true;
+      try {
+        const u = new URL(v);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'http 또는 https 로 시작하는 링크만 넣을 수 있습니다' },
+  )
+  // 빈 문자열은 "입력 안 함" 이므로 null 로 저장한다.
+  .transform((v) => (v === '' ? null : v));
+
 export const createInviteSchema = z.object({
   hostName: trimmedText(20),
   matchDate: dateString,
   matchTime: timeString,
   venue: trimmedText(50),
+  matchUrl: matchUrlString.nullish().transform((v) => v ?? null),
 });
 
 export const createResponseSchema = z.object({

@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const parsed = createInviteSchema.safeParse(body);
     if (!parsed.success) return badRequest();
 
-    const { hostName, matchDate, matchTime, venue } = parsed.data;
+    const { hostName, matchDate, matchTime, venue, matchUrl } = parsed.data;
     if (isPastDate(matchDate)) return badRequest('past_date');
 
     const [{ value: recent }] = await db
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const slug = newSlug();
     const manageToken = newManageToken();
 
-    await db.insert(invites).values({ slug, manageToken, hostName, matchDate, matchTime, venue });
+    await db.insert(invites).values({ slug, manageToken, hostName, matchDate, matchTime, venue, matchUrl });
 
     const base = baseUrl(request);
     return NextResponse.json(

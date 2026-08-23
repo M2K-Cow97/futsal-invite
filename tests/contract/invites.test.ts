@@ -38,6 +38,36 @@ describe('POST /api/invites', () => {
     expect(a.manageToken).not.toBe(b.manageToken);
   });
 
+  it('경기 링크는 선택 항목이며 http/https 만 허용한다', async () => {
+    // 없어도 만들어진다.
+    const none = await createInvite(postJson(`${BASE}/api/invites`, validBody()));
+    expect(none.status).toBe(201);
+
+    // https 는 저장되고 조회에 그대로 나온다.
+    const ok = await createInvite(
+      postJson(`${BASE}/api/invites`, {
+        ...validBody(),
+        matchUrl: 'https://www.plabfootball.com/match/1234567',
+      }),
+    );
+    expect(ok.status).toBe(201);
+    const { slug } = await ok.json();
+    const got = await getInvite(new Request(`${BASE}/api/invites/${slug}`), {
+      params: Promise.resolve({ slug }),
+    });
+    expect((await got.json()).matchUrl).toBe('https://www.plabfootball.com/match/1234567');
+
+    /*
+     * javascript: 는 반드시 막아야 한다 — 이 값은 화면에서 <a href> 로
+     * 렌더되므로 통과하면 클릭 가능한 XSS 가 된다. React 의 자동 이스케이프는
+     * href 스킴을 막아주지 않는다.
+     */
+    for (const bad of ['javascript:alert(1)', 'ftp://x.com/a', 'not a url', ' javascript:x ']) {
+      const res = await createInvite(postJson(`${BASE}/api/invites`, { ...validBody(), matchUrl: bad }));
+      expect(res.status, `${bad} 는 거부돼야 한다`).toBe(400);
+    }
+  });
+
   it('과거 날짜는 400 past_date 로 거부한다', async () => {
     const res = await createInvite(
       postJson(`${BASE}/api/invites`, validBody({ matchDate: pastDate() })),

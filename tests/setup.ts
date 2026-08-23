@@ -22,6 +22,7 @@ export async function createTestDb() {
       "match_date"   date NOT NULL,
       "match_time"   time NOT NULL,
       "venue"        varchar(50) NOT NULL,
+      "match_url"    varchar(500),
       "created_at"   timestamptz NOT NULL DEFAULT now()
     );
 

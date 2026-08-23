@@ -27,6 +27,11 @@ export const invites = pgTable('invites', {
   matchDate: date('match_date').notNull(),
   matchTime: time('match_time').notNull(),
   venue: varchar('venue', { length: 50 }).notNull(),
+  /**
+   * 플랩·매치 등 경기 예약 페이지 링크. 선택 항목이다.
+   * 게스트가 구장 위치·회비 같은 상세를 직접 확인할 수 있게 한다.
+   */
+  matchUrl: varchar('match_url', { length: 500 }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

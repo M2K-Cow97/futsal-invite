@@ -20,6 +20,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
         matchDate: invites.matchDate,
         matchTime: invites.matchTime,
         venue: invites.venue,
+        matchUrl: invites.matchUrl,
       })
       .from(invites)
       .where(eq(invites.slug, slug))

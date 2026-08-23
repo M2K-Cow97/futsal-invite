@@ -9,7 +9,7 @@ type Created = { inviteUrl: string; manageUrl: string };
 /** 주최자 화면 — 경기 정보를 입력해 초대 링크를 만든다 (spec Story 2). */
 export default function HomePage() {
   const [hostName, setHostName] = useState('');
-  const [match, setMatch] = useState<MatchInfo>({ matchDate: '', matchTime: '', venue: '' });
+  const [match, setMatch] = useState<MatchInfo>({ matchDate: '', matchTime: '', venue: '', matchUrl: '' });
   const [created, setCreated] = useState<Created | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +32,8 @@ export default function HomePage() {
           matchDate: match.matchDate,
           matchTime: match.matchTime,
           venue: match.venue.trim(),
+          // 빈 문자열은 서버에서 null 로 바뀐다(선택 항목).
+          matchUrl: (match.matchUrl ?? '').trim(),
         }),
       });
 
@@ -41,7 +43,7 @@ export default function HomePage() {
         setError(
           data?.error === 'past_date'
             ? '지난 날짜예요. 다시 골라 주세요.'
-            : '초대장을 만들지 못했어요. 입력을 확인해 주세요.',
+            : '초대장을 만들지 못했어요. 입력을 확인해 주세요. (경기 링크는 http 로 시작해야 해요)',
         );
         return;
       }
@@ -120,7 +122,7 @@ export default function HomePage() {
           >
             {submitting ? '만드는 중…' : '초대장 만들기 ➜'}
           </button>
-          {!ready && <p className="hint">네 칸을 모두 채워야 초대장을 만들 수 있어요</p>}
+          {!ready && <p className="hint">이름·날짜·시간·구장을 채워야 초대장을 만들 수 있어요</p>}
         </div>
       </div>
     </main>
