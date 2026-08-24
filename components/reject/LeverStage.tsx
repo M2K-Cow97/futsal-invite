@@ -11,7 +11,7 @@ import { useTimers } from './useTimers';
  *
  * 난이도는 "판정 구간이 열려 있는 시간" 으로 계산해야 한다:
  *   구간(ms) = (ZONE_HALF * 2 / SPEED) * 1000
- * 1.4 * 2 / 132 → 약 21ms. 사람 반응속도(200~250ms)로는 보고 누를 수 없고,
+ * 1.4 * 2 / 190 → 약 15ms. 사람 반응속도(200~250ms)로는 보고 누를 수 없고,
  * 커서의 왕복 리듬을 외워 미리 눌러야 맞는다. 그래서 여러 번 시도하게 된다.
  */
 const ZONE_HALF = 1.4;
@@ -20,7 +20,7 @@ const GIVE_UP_AFTER = 4;
 /** 요구되는 연속 성공. 한 번은 운으로 맞을 수 있다. */
 const REQUIRED_STREAK = 3;
 /** 커서가 왕복하는 속도(%/초). 빠르다. */
-const SPEED = 132;
+const SPEED = 190;
 
 type Phase = 'ready' | 'running' | 'almost' | 'betrayed' | 'missed';
 

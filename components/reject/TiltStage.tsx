@@ -18,7 +18,6 @@ const ZONE_CENTER = 50;
 const ZONE_HALF = 1.6;
 /** 이만큼 버티면 "달성" 처럼 보이게 한 뒤 배신한다. */
 const HOLD_MS = 3000;
-const GIVE_UP_AFTER = 1;
 /** 안내 문구용. HOLD_MS 를 바꿨는데 문구가 그대로면 거짓 정보가 된다. */
 const HOLD_SEC = HOLD_MS / 1000;
 
@@ -265,11 +264,14 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
         </button>
       </div>
 
-      {active && attempts >= GIVE_UP_AFTER && (
+      {/*
+        성공(3초 유지)이 사실상 불가능한 난이도이므로 탈출구를 시도 횟수와
+        무관하게 처음부터 보여준다. 성공을 게이트로 두면 사용자가 막힌다.
+      */}
+      {(
         <button
           type="button"
-          className="btn btn-primary btn-block"
-          style={{ marginTop: 10 }}
+          className="btn btn-primary btn-block stage-escape"
           onClick={onGiveUp}
         >
           다른 방법으로 거절

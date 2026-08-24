@@ -1260,6 +1260,15 @@ body {
   accent-color: var(--app-green);
 }
 
+/*
+ * "다른 방법으로 거절" — 다음 관문으로 넘어가는 탈출 버튼.
+ * 스테이지마다 마진 처리가 제각각(없음/인라인 10px)이라 위 버튼 줄에 붙어
+ * 보였다. 클래스로 통일한다.
+ */
+.stage-escape {
+  margin-top: var(--ht-space-xxs);
+}
+
 .reject-footer {
   margin-top: var(--ht-space-xs);
 }

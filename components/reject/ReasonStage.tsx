@@ -218,7 +218,7 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
       {rejected.length >= GIVE_UP_AFTER && phase !== 'reviewing' && (
         <button
           type="button"
-          className="btn btn-primary btn-block"
+          className="btn btn-primary btn-block stage-escape"
           onClick={onGiveUp}
         >
           다른 방법으로 거절

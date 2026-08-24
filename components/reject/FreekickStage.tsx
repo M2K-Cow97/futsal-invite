@@ -137,7 +137,7 @@ export function FreekickStage({ onGiveUp, onClose }: StageProps) {
       {attempts >= GIVE_UP_AFTER && (
         <button
           type="button"
-          className="btn btn-primary btn-block"
+          className="btn btn-primary btn-block stage-escape"
           onClick={onGiveUp}
         >
           다른 방법으로 거절
