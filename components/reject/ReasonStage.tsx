@@ -110,7 +110,7 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
           </div>
           <p className="lever-hint">
             {rejected.length === 0
-              ? '💡 사유가 정당하면 바로 승인됩니다'
+              ? '사유가 정당하면 바로 승인됩니다'
               : remaining.length === 0
                 ? '모든 사유가 기각되었습니다'
                 : `${rejected.length}개 기각 · ${remaining.length}개 남음`}
@@ -139,7 +139,7 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
                 <span className="injury-drop-main">{reason.needsFile.cta}</span>
                 <span className="injury-drop-sub">{reason.needsFile.sub}</span>
               </button>
-              <p className="lever-hint">📎 제출한 파일은 서버로 전송되지 않습니다</p>
+              <p className="lever-hint">제출한 파일은 서버로 전송되지 않습니다</p>
             </>
           )}
 
@@ -174,8 +174,8 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
 
       {phase === 'reviewing' && reason && (
         <div className="injury-review">
-          {fileName && <p className="injury-file">📄 {fileName}</p>}
-          {reason.needsText && text && <p className="injury-file">✍️ {text}</p>}
+          {fileName && <p className="injury-file">{fileName}</p>}
+          {reason.needsText && text && <p className="injury-file">{text}</p>}
           <ul className="injury-steps">
             {reason.steps.map((label, i) => (
               <li key={label} className={i < step ? 'done' : i === step ? 'active' : ''}>
@@ -191,8 +191,8 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
 
       {phase === 'verdict' && reason && (
         <div className="injury-verdict">
-          {fileName && <p className="injury-file">📄 {fileName}</p>}
-          {reason.needsText && text && <p className="injury-file">✍️ {text}</p>}
+          {fileName && <p className="injury-file">{fileName}</p>}
+          {reason.needsText && text && <p className="injury-file">{text}</p>}
           <p className="injury-verdict-head">{ruling?.verdict ?? reason.verdict}</p>
           <p className="injury-verdict-body">{ruling?.resolution ?? reason.resolution}</p>
           <p className="injury-stamp">{ruling?.stamp ?? reason.stamp}</p>

@@ -108,18 +108,23 @@ body {
 /* ─── 타이포 ───────────────────────────────────────── */
 
 /* Heading/h2 — 24/28, tracking L */
+/*
+ * 화면 제목. h2(24) 로는 본문(16)과 차이가 작아 위계가 안 보였다.
+ * h1(28~32) 로 올려 "제목 → 설명 → 본문" 이 한눈에 구분되게 한다.
+ */
 .title {
   margin: 0 0 var(--ht-space-xxs);
-  font-size: var(--sys-heading-h2-size);
-  line-height: var(--sys-heading-h2-leading);
-  letter-spacing: var(--sys-heading-h2-tracking);
+  font-size: 28px;
+  line-height: 1.25;
+  letter-spacing: var(--sys-heading-h1-tracking);
   font-weight: var(--ht-weight-bold);
   text-align: center;
 }
 
 /* Body/secondary */
 .subtitle {
-  margin: 0 0 var(--ht-space-s);
+  /* 제목과 붙여 한 덩어리로 읽히게 하고, 아래 여백을 크게 벌린다. */
+  margin: 0 0 var(--ht-space-l);
   color: var(--app-ink-soft);
   font-size: var(--sys-body-secondary-size);
   line-height: var(--sys-body-secondary-leading);
@@ -208,15 +213,23 @@ body {
   background: var(--sys-action-primary-bg-active);
 }
 
-/* Hierarchy=Secondary — 예전 btn-accent(노랑) 자리.
-   시스템에 노랑이 없어 neutral.950 solid 로 간다. */
+/*
+ * Hierarchy=Secondary. 예전엔 검정 solid 라 주버튼(초록)과 무게가 비슷해
+ * 한 화면에 강한 버튼이 둘 보였다. 배경을 지우고 테두리만 남겨 한 단계 낮춘다.
+ * 화면당 solid 버튼은 하나여야 시선이 갈 곳이 분명해진다.
+ */
 .btn-accent {
-  color: var(--sys-action-secondary-fg);
-  background: var(--sys-action-secondary-bg);
+  color: var(--sys-text-primary);
+  background: transparent;
+  border: 1px solid var(--sys-border-default);
+}
+
+.btn-accent:hover:not(:disabled) {
+  background: var(--app-sunken);
 }
 
 .btn-accent:active:not(:disabled) {
-  background: var(--sys-action-secondary-bg-active);
+  background: var(--app-sunken);
 }
 
 /* Hierarchy=Tertiary */
@@ -246,6 +259,65 @@ body {
   min-height: var(--sys-control-height-sm);
   padding: 0 var(--sys-control-padding-x-sm);
   font-size: var(--sys-button-secondary-size);
+}
+
+/* ─── ① invite: 헤더 ────────────────────────────────── */
+
+/* "누가 부르는지" — 제목보다 작고 흐리게 둬 뒷줄이 주인공이 되게 한다. */
+.invite-from {
+  margin: 0 0 var(--ht-space-xxxs);
+  color: var(--app-ink-faint);
+  font-size: var(--sys-body-secondary-size);
+  line-height: var(--sys-body-secondary-leading);
+  font-weight: var(--ht-weight-bold);
+  text-align: center;
+}
+
+.invite-title {
+  margin: 0 0 var(--ht-space-s);
+}
+
+/*
+ * 경기 정보. 초대장인데 언제·어디인지 3번째 화면에서야 나오던 것을 앞으로
+ * 끌어올렸다. 카드 안의 카드가 되지 않게 배경 한 단계만 쓰고 보더는 뺀다.
+ */
+.invite-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0 0 var(--ht-space-xs);
+  padding: 0;
+  background: var(--app-edge);
+  border-radius: var(--sys-radius-md);
+  overflow: hidden;
+}
+
+.invite-meta > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ht-space-xs);
+  padding: var(--ht-space-xxs) calc(var(--ht-space-xxxs) * 3);
+  background: var(--app-sunken);
+}
+
+.invite-meta dt {
+  margin: 0;
+  flex-shrink: 0;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  line-height: var(--sys-label-tertiary-leading);
+  font-weight: var(--ht-weight-bold);
+}
+
+.invite-meta dd {
+  margin: 0;
+  color: var(--app-ink);
+  font-size: var(--sys-label-secondary-size);
+  line-height: var(--sys-label-secondary-leading);
+  font-weight: var(--ht-weight-bold);
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 /* ─── ① invite: 싫어 버튼 회피 ─────────────────────── */
@@ -915,9 +987,8 @@ body {
     padding: var(--ht-space-xl) var(--ht-space-l);
   }
 
-  /* Heading/h1 로 한 단계 올린다 */
   .title {
-    font-size: 28px;
+    font-size: 32px;
   }
 }
 
@@ -1228,239 +1299,6 @@ body {
 
 .keypad-key.sub {
   color: var(--app-ink-faint);
-}
-
-/* ④ 장문 약관 */
-
-.terms-progress {
-  height: 7px;
-  background: var(--app-sunken);
-  border: 1px solid var(--app-edge);
-  border-radius: var(--sys-radius-pill);
-  overflow: hidden;
-}
-
-.terms-progress-fill {
-  height: 100%;
-  background: var(--app-green);
-  transition: width 160ms linear;
-}
-
-.terms-pct {
-  display: block;
-  margin: 5px 0 10px;
-  color: var(--app-ink-faint);
-  font-size: var(--sys-label-tertiary-size);
-  font-weight: var(--ht-weight-bold);
-  text-align: right;
-}
-
-.terms-box {
-  height: 176px;
-  padding: 12px;
-  overflow-y: auto;
-  background: var(--app-card);
-  border: 1px solid var(--app-edge);
-  border-radius: var(--sys-radius-md);
-  -webkit-overflow-scrolling: touch;
-}
-
-.terms-lead {
-  margin: 0 0 10px;
-  font-size: var(--sys-label-tertiary-size);
-  font-weight: var(--ht-weight-bold);
-}
-
-.terms-clause {
-  margin: 0 0 var(--ht-space-xxs);
-  color: var(--app-ink-soft);
-  font-size: var(--sys-label-tertiary-size);
-  line-height: 1.6;
-}
-
-.terms-clause b {
-  color: var(--app-ink);
-}
-
-.terms-end {
-  margin: 12px 0 0;
-  font-size: var(--sys-label-tertiary-size);
-  font-weight: var(--ht-weight-bold);
-  text-align: center;
-}
-
-.terms-agree {
-  display: flex;
-  align-items: center;
-  gap: var(--ht-space-xxs);
-  margin: 12px 0;
-  color: var(--app-ink-soft);
-  font-size: var(--sys-body-tertiary-size);
-}
-
-.terms-agree input {
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
-  accent-color: var(--app-green);
-}
-
-/* ⑦ 훈시 — 한 문장씩 아련하게 올라오는 자막 */
-
-.lecture-board {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: var(--ht-space-xxs);
-  min-height: 200px;
-  padding: var(--ht-space-xs);
-  margin-bottom: var(--ht-space-xs);
-  /*
-   * 무채색 어두운 벽. 참고 연출의 배경이 콘크리트 톤이라 초록 필드보다
-   * 이쪽이 "훈시" 분위기에 맞는다. neutral.950 → 900 으로 결을 준다.
-   */
-  background:
-    repeating-linear-gradient(
-      100deg,
-      transparent 0 6px,
-      color-mix(in srgb, var(--ht-neutral-0) 3%, transparent) 6px 12px
-    ),
-    linear-gradient(160deg, var(--ht-neutral-800) 0%, var(--ht-neutral-950) 100%);
-  border-radius: var(--sys-radius-md);
-  /* 위로 밀려난 줄이 경계에서 자연스럽게 사라지게 */
-  mask-image: linear-gradient(to bottom, transparent, #000 28%);
-  overflow: hidden;
-}
-
-.lecture-line {
-  margin: 0;
-  color: var(--sys-field-line);
-  font-size: var(--sys-body-secondary-size);
-  line-height: var(--sys-body-secondary-leading);
-  font-weight: var(--ht-weight-bold);
-  /*
-   * 아래에서 올라오는 등장은 transform 만 다룬다. opacity 를 애니메이션에
-   * 포함하면(fill-mode both) 종료 후에도 값이 고정돼 past-* 의 흐려짐이
-   * 무력화된다 — 실측으로 확인했다.
-   */
-  animation: lecture-rise 720ms var(--sys-ease-standard);
-  transition:
-    opacity 520ms var(--sys-ease-standard),
-    filter 520ms var(--sys-ease-standard);
-}
-
-/* 지금 나온 줄 — 또렷하게 */
-.lecture-line.current {
-  opacity: 1;
-  filter: none;
-}
-
-/* 지나간 줄은 멀어질수록 흐려진다. 기억처럼. */
-.lecture-line.past-1 {
-  opacity: 0.5;
-}
-.lecture-line.past-2 {
-  opacity: 0.28;
-  filter: blur(0.4px);
-}
-.lecture-line.past-3 {
-  opacity: 0.16;
-  filter: blur(0.8px);
-}
-
-/*
- * "FUTSAL" — 화면을 꽉 채우는 흰 대문자. 아래에 붉은 잔상이 깔린다.
- * 참고한 연출(스포츠 다큐의 "FIGHT" 타이틀)의 특징을 따랐다:
- * 거대한 산세리프, 좁은 자간, 흰색, 붉은 글리치 잔상.
- */
-.lecture-line.big {
-  /* 보드 폭에 맞춰 최대한 크게. clamp 로 좁은 화면에서도 넘치지 않는다. */
-  font-size: clamp(40px, 19vw, 76px);
-  line-height: 1.02;
-  /* 좁은 자간 + 굵게 — 글자들이 서로 붙어 덩어리로 보인다 */
-  letter-spacing: -0.02em;
-  font-weight: 900;
-  color: var(--sys-field-line);
-  text-align: center;
-  text-transform: uppercase;
-  /* 잔상이 글자 밖으로 나가도 잘리지 않게 */
-  padding: 2px 0;
-}
-
-.lecture-line.big.current {
-  animation:
-    lecture-rise 720ms var(--sys-ease-standard),
-    /* 붉은 잔상이 아래로 번지며 가라앉는다 */ lecture-glitch 1600ms
-      var(--sys-ease-standard) 200ms both;
-}
-
-@keyframes lecture-glitch {
-  0% {
-    text-shadow:
-      0 0 0 transparent,
-      0 0 0 transparent;
-  }
-  18% {
-    /* 순간적으로 좌우로 찢어지며 붉은 잔상이 튄다 */
-    text-shadow:
-      -3px 3px 0 var(--sys-status-danger),
-      2px -1px 0 color-mix(in srgb, var(--sys-accent-on-dark) 70%, transparent);
-  }
-  30% {
-    text-shadow:
-      2px 4px 0 var(--sys-status-danger),
-      -1px -1px 0 transparent;
-  }
-  100% {
-    /* 아래로 가라앉아 옅은 붉은 그림자만 남는다 */
-    text-shadow: 0 6px 14px color-mix(in srgb, var(--sys-status-danger) 45%, transparent);
-  }
-}
-
-@keyframes lecture-rise {
-  from {
-    transform: translateY(14px);
-  }
-  to {
-    transform: none;
-  }
-}
-
-@keyframes lecture-toll {
-  0% {
-    text-shadow: none;
-  }
-  35% {
-    text-shadow: 0 0 22px color-mix(in srgb, var(--sys-accent-on-dark) 60%, transparent);
-  }
-  100% {
-    text-shadow: none;
-  }
-}
-
-/* 움직임을 줄이라는 설정이면 페이드만 남긴다 */
-@media (prefers-reduced-motion: reduce) {
-  .lecture-line,
-  .lecture-line.big.current {
-    animation: none;
-  }
-}
-
-.lecture-count {
-  margin: var(--ht-space-xxs) 0 0;
-  color: var(--app-ink-faint);
-  font-size: var(--sys-label-tertiary-size);
-  font-weight: var(--ht-weight-bold);
-  text-align: center;
-}
-
-/*
- * "다른 방법으로 거절" — 다음 관문으로 넘어가는 탈출 버튼.
- * 스테이지마다 마진 처리가 제각각(없음/인라인 10px)이라 위 버튼 줄에 붙어
- * 보였다. 클래스로 통일한다.
- */
-.stage-escape {
-  margin-top: var(--ht-space-xxs);
 }
 
 .reject-footer {

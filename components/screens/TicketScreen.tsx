@@ -46,7 +46,7 @@ export function TicketScreen({ ticket }: { ticket: Ticket }) {
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch {
-      setError('이미지 저장에 실패했어요. 화면을 캡처해 주세요 🙏');
+      setError('이미지 저장에 실패했어요. 화면을 캡처해 주세요');
     } finally {
       setSaving(false);
     }
@@ -54,7 +54,7 @@ export function TicketScreen({ ticket }: { ticket: Ticket }) {
 
   return (
     <div className="screen">
-      <h2 className="title">경기 확정! 🎉</h2>
+      <h2 className="title">경기 확정!</h2>
       <p className="subtitle">{ticket.hostName}이(가) 기다리고 있어</p>
 
       <div className="ticket" ref={ticketRef}>
@@ -95,7 +95,7 @@ export function TicketScreen({ ticket }: { ticket: Ticket }) {
           onClick={saveImage}
           disabled={saving}
         >
-          {saving ? '저장 중…' : '이미지 저장 📸'}
+          {saving ? '저장 중…' : '이미지 저장'}
         </button>
         <a className="btn btn-ghost" href="/" style={{ textDecoration: 'none' }}>
           나도 만들기

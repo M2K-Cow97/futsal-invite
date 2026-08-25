@@ -61,16 +61,16 @@ export default function HomePage() {
       <main className="stage">
         <div className="card">
           <div className="screen">
-            <h1 className="title">초대장 완성! 🎉</h1>
+            <h1 className="title">초대장 완성!</h1>
             <p className="subtitle">공유 링크를 단톡방에 던지세요</p>
 
             <CopyLinkBox
-              label="🔗 공유 링크"
+              label="공유 링크"
               desc="친구에게 보낼 링크예요. 이 링크를 연 사람이 포지션을 골라 참석자로 등록됩니다."
               url={created.inviteUrl}
             />
             <CopyLinkBox
-              label="🔒 관리 링크"
+              label="관리 링크"
               desc="참석자 명단을 보는 링크예요. 나만 알고 있어야 합니다."
               url={created.manageUrl}
             />
@@ -120,7 +120,7 @@ export default function HomePage() {
             disabled={!ready || submitting}
             onClick={submit}
           >
-            {submitting ? '만드는 중…' : '초대장 만들기 ➜'}
+            {submitting ? '만드는 중…' : '초대장 만들기'}
           </button>
           {!ready && <p className="hint">이름·날짜·시간·구장을 채워야 초대장을 만들 수 있어요</p>}
         </div>

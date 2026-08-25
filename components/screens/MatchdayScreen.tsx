@@ -1,5 +1,7 @@
 'use client';
 
+import { formatMatchDate } from '@/lib/format';
+
 /**
  * ③ matchday — 일정.
  *
@@ -21,12 +23,7 @@ export type MatchInfo = {
   venueImage?: string | null;
 };
 
-function formatDate(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  if (!y || !m || !d) return iso;
-  const dow = ['일', '월', '화', '수', '목', '금', '토'][new Date(y, m - 1, d).getDay()];
-  return `${y}. ${String(m).padStart(2, '0')}. ${String(d).padStart(2, '0')} (${dow})`;
-}
+
 
 export function MatchdayEditor({
   value,
@@ -115,10 +112,10 @@ export function MatchdayScreen({
 }) {
   return (
     <div className="screen">
-      <h2 className="title">참석 확인 📋</h2>
+      <h2 className="title">참석 확인</h2>
       <p className="subtitle">날짜·시간·구장은 이미 정해졌어. 이름만 알려줘!</p>
 
-      {isPast && <p className="warn">이미 지난 경기예요 🥲</p>}
+      {isPast && <p className="warn">이미 지난 경기예요</p>}
 
       {/*
         구장 사진. 스크래핑이 실패했거나 남의 이미지가 로드되지 않으면
@@ -143,7 +140,7 @@ export function MatchdayScreen({
       <dl style={{ margin: '0 0 20px' }}>
         <div className="readonly-row">
           <dt>날짜</dt>
-          <dd>{formatDate(match.matchDate)}</dd>
+          <dd>{formatMatchDate(match.matchDate, { withYear: true })}</dd>
         </div>
         <div className="readonly-row">
           <dt>시간</dt>
@@ -192,7 +189,7 @@ export function MatchdayScreen({
         disabled={guestName.trim().length === 0}
         onClick={onNext}
       >
-        참석할래! ➜
+        참석할래!
       </button>
       {guestName.trim().length === 0 && <p className="hint">이름을 입력해야 참석 확정할 수 있어</p>}
     </div>

@@ -12,11 +12,11 @@ export function SiuuuScreen({ onNext }: { onNext: () => void }) {
     <div className="screen">
       <MediaBox src="/assets/siu.gif" alt="SIU 셀러브레이션" fallback="🕺" />
 
-      <h2 className="title siu-title">나도 좋siuuuuu 🔥</h2>
+      <h2 className="title siu-title">나도 좋siuuuuu</h2>
       <p className="subtitle">경기는 이미 잡혀 있어. 참석만 확정하면 돼!</p>
 
       <button type="button" className="btn btn-accent btn-block" onClick={onNext}>
-        참석 확정하기 📋
+        참석 확정하기
       </button>
     </div>
   );

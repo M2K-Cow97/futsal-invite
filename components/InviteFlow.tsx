@@ -64,7 +64,7 @@ export function InviteFlow({
           .catch(() => null);
         setError(
           reason === 'past_match'
-            ? '이미 지난 경기라 참석 등록이 마감됐어요 🥲 주최자에게 새 초대장을 요청해 주세요.'
+            ? '이미 지난 경기라 참석 등록이 마감됐어요 주최자에게 새 초대장을 요청해 주세요.'
             : '응답을 저장하지 못했어요. 다시 시도해 주세요.',
         );
         return;
@@ -83,7 +83,7 @@ export function InviteFlow({
     <main className="stage">
       <div className="card">
         {screen === 'invite' && (
-          <InviteScreen hostName={hostName} isPast={isPast} onAccept={accept} />
+          <InviteScreen hostName={hostName} match={match} isPast={isPast} onAccept={accept} />
         )}
 
         {screen === 'siuuu' && <SiuuuScreen onNext={() => setScreen('matchday')} />}

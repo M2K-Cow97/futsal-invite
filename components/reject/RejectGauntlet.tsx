@@ -6,7 +6,6 @@ import { KeypadStage } from './KeypadStage';
 import { LectureStage } from './LectureStage';
 import { LeverStage } from './LeverStage';
 import { ReasonStage } from './ReasonStage';
-import { TermsStage } from './TermsStage';
 import { TiltStage } from './TiltStage';
 import type { StageId } from './types';
 
@@ -17,7 +16,6 @@ const ORDER: StageId[] = [
   'tilt',
   'freekick',
   'keypad',
-  'terms',
   // 마지막. 게임을 다 통과(=실패)한 사람에게 남는 건 훈시뿐이다.
   'lecture',
 ];
@@ -44,8 +42,6 @@ export function RejectGauntlet({ onClose }: { onClose: () => void }) {
       return <FreekickStage {...props} />;
     case 'keypad':
       return <KeypadStage {...props} />;
-    case 'terms':
-      return <TermsStage {...props} />;
     case 'lecture':
       return <LectureStage {...props} />;
   }

@@ -61,7 +61,7 @@ export default async function ManagePage({ params }: { params: Promise<{ token: 
     <main className="stage">
       <div className="card">
         <div className="screen">
-          <h1 className="title">참석자 명단 📋</h1>
+          <h1 className="title">참석자 명단</h1>
           <p className="subtitle">
             {formatDate(invite.matchDate)} {invite.matchTime.slice(0, 5)} · {invite.venue}
           </p>
@@ -76,7 +76,7 @@ export default async function ManagePage({ params }: { params: Promise<{ token: 
           </div>
 
           {rows.length === 0 ? (
-            <p className="empty">아직 아무도 응답하지 않았어요 🥲</p>
+            <p className="empty">아직 아무도 응답하지 않았어요</p>
           ) : (
             <ul className="roster">
               {rows.map((row) => (

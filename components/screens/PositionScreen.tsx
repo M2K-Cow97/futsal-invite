@@ -48,7 +48,7 @@ export function PositionScreen({
       <p className="subtitle">
         {counts
           ? total === 0
-            ? '아직 아무도 없어. 첫 번째야! 🎉'
+            ? '아직 아무도 없어. 첫 번째야!'
             : `지금 ${total}명 참석 · 비어 있는 자리를 골라도 좋아`
           : '원하는 자리를 골라줘'}
       </p>

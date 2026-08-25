@@ -96,12 +96,12 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
   /** 맞췄다 → 곧바로 배신. 버튼이 "미세하게 이동" 한다. */
   const betray = useCallback(() => {
     setPhase('almost');
-    setMessage('✨ 거절 버튼 조준 성공! …접수 중');
+    setMessage('거절 버튼 조준 성공. 접수 중…');
     buzz(30);
 
     timers.set(() => {
       setPhase('betrayed');
-      setMessage('⚠ 버튼 위치 오차가 감지되었습니다. 재배치합니다');
+      setMessage('버튼 위치 오차가 감지되었습니다. 재배치합니다');
       buzz([40, 60, 40]);
       setAttempts((n) => n + 1);
 
@@ -157,7 +157,7 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
 
   return (
     <RejectShell
-      title="거절 버튼 조준 🎯"
+      title="거절 버튼 조준"
       subtitle={`커서가 '거절' 버튼에 겹칠 때 멈추세요. ${REQUIRED_STREAK}연속 성공해야 접수됩니다.`}
     >
       <div className="aim-track">
@@ -179,7 +179,7 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
           {message}
         </p>
       ) : (
-        <p className="lever-hint">⚠ 버튼이 작습니다. 커서가 정확히 겹칠 때 누르세요</p>
+        <p className="lever-hint">버튼이 작습니다. 커서가 정확히 겹칠 때 누르세요</p>
       )}
 
       {phase === 'ready' ? (

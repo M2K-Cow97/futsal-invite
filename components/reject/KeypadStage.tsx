@@ -14,9 +14,9 @@ const HINTS = [
   '10자리입니다. 방금 바꿨습니다',
   '숫자가 아니라 별자리입니다',
   '4자리인데 순서가 중요합니다',
-  '메시 등번호로 시작합니다 (10이 아닙니다)',
+  '호날두 등번호로 시작합니다 (7이 아닙니다)',
   '비밀번호에 소수(素數)만 들어갑니다',
-  '지금은 메시가 자고 있습니다',
+  '지금 호날두는 윗몸일으키기 중입니다',
 ];
 
 export function KeypadStage({ onGiveUp, onClose }: StageProps) {
@@ -43,7 +43,7 @@ export function KeypadStage({ onGiveUp, onClose }: StageProps) {
     timers.set(() => {
       const n = attempts + 1;
       setAttempts(n);
-      setError('❌ 틀렸습니다');
+      setError('틀렸습니다');
       setHint(HINTS[n % HINTS.length]);
       setEntry('');
       setChecking(false);
@@ -52,8 +52,8 @@ export function KeypadStage({ onGiveUp, onClose }: StageProps) {
 
   return (
     <RejectShell
-      title="보안 인증"
-      subtitle="거절은 메시 본인의 동의가 필요합니다. 메시 집 현관 버튼키를 입력하세요."
+      title="라커룸 인증"
+      subtitle="거절은 호날두 본인의 동의가 필요합니다. 라커룸 비밀번호를 입력하세요."
     >
       <div className="keypad-display">
         {checking ? (
@@ -87,7 +87,7 @@ export function KeypadStage({ onGiveUp, onClose }: StageProps) {
       </div>
 
       {error && <p className="lever-msg bad">{error} (시도 {attempts}회)</p>}
-      <p className="lever-hint">💡 힌트: {hint}</p>
+      <p className="lever-hint">힌트: {hint}</p>
 
       <div className="modal-actions">
         <button type="button" className="btn btn-ghost" onClick={onClose}>

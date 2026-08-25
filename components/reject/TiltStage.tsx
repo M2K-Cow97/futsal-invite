@@ -66,13 +66,13 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
   const betray = useCallback(() => {
     setPhase('almost');
     phaseRef.current = 'almost';
-    setMessage('✨ 안정화 완료! …검증 중');
+    setMessage('안정화 완료. 검증 중…');
     buzz(30);
 
     timers.set(() => {
       setPhase('betrayed');
       phaseRef.current = 'betrayed';
-      setMessage('⚠ 센서 오차가 감지되었습니다. 재보정합니다');
+      setMessage('센서 오차가 감지되었습니다. 재보정합니다');
       buzz([40, 60, 40]);
       setAttempts((n) => n + 1);
 
@@ -208,7 +208,7 @@ export function TiltStage({ onGiveUp, onClose }: StageProps) {
 
   return (
     <RejectShell
-      title="거절 각 재기 📐"
+      title="거절 각 재기"
       subtitle={
         usingTilt
           ? `폰을 좌우로 기울여 공을 목표 구역에 ${HOLD_SEC}초간 세우세요.`

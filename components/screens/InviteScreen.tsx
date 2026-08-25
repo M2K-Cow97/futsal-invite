@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { formatMatchDate } from '@/lib/format';
 import { RejectGauntlet } from '../reject/RejectGauntlet';
 
 const FLEE_LIMIT = 3;
@@ -34,10 +35,16 @@ function overlaps(a: Box, b: Box, gap: number): boolean {
  */
 export function InviteScreen({
   hostName,
+  match,
   isPast,
   onAccept,
 }: {
   hostName: string;
+  /**
+   * 경기 정보. 초대장인데 언제·어디인지 3번째 화면에서야 보이던 것을
+   * 첫 화면으로 끌어올렸다 — 받는 사람이 가장 먼저 알고 싶은 정보다.
+   */
+  match: { matchDate: string; matchTime: string; venue: string };
   /** 경기 날짜가 지났으면 마감. 링크는 열리지만 참석 등록은 안 된다. */
   isPast?: boolean;
   onAccept: () => void;
@@ -146,18 +153,30 @@ export function InviteScreen({
 
   return (
     <div className="screen">
-      <h1 className="title">
-        {hostName}이(가) 물어봐요
-        <br />
-        나랑 풋살할래? ⚽
-      </h1>
+      {/* 앞줄은 작고 흐리게, 뒷줄이 주인공. 같은 크기면 위계가 안 보인다. */}
+      <p className="invite-from">{hostName}이(가) 물어봐요</p>
+      <h1 className="title invite-title">나랑 풋살할래?</h1>
+
+      <dl className="invite-meta">
+        <div>
+          <dt>언제</dt>
+          <dd>
+            {formatMatchDate(match.matchDate)} {match.matchTime}
+          </dd>
+        </div>
+        <div>
+          <dt>어디서</dt>
+          <dd>{match.venue}</dd>
+        </div>
+      </dl>
+
       <p className="subtitle">거절은 물리적으로 불가능합니다</p>
 
       {/* 마감된 경기는 시작 전에 알린다. 관문을 다 통과한 뒤
           서버에서 거부당하면 헛수고가 된다. */}
       {isPast && (
         <p className="warn" role="status">
-          이미 지난 경기라 참석 등록이 마감됐어요 🥲
+          이미 지난 경기라 참석 등록이 마감됐어요
           <br />
           주최자에게 새 초대장을 요청해 주세요.
         </p>
