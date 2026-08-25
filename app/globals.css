@@ -1301,6 +1301,164 @@ body {
   color: var(--app-ink-faint);
 }
 
+/* ⑦ 훈시 — 한 문장씩 아련하게 올라오는 자막 */
+
+.lecture-board {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--ht-space-xxs);
+  min-height: 200px;
+  padding: var(--ht-space-xs);
+  margin-bottom: var(--ht-space-xs);
+  /*
+   * 무채색 어두운 벽. 참고 연출의 배경이 콘크리트 톤이라 초록 필드보다
+   * 이쪽이 "훈시" 분위기에 맞는다. neutral.950 → 900 으로 결을 준다.
+   */
+  background:
+    repeating-linear-gradient(
+      100deg,
+      transparent 0 6px,
+      color-mix(in srgb, var(--ht-neutral-0) 3%, transparent) 6px 12px
+    ),
+    linear-gradient(160deg, var(--ht-neutral-800) 0%, var(--ht-neutral-950) 100%);
+  border-radius: var(--sys-radius-md);
+  /* 위로 밀려난 줄이 경계에서 자연스럽게 사라지게 */
+  mask-image: linear-gradient(to bottom, transparent, #000 28%);
+  overflow: hidden;
+}
+
+.lecture-line {
+  margin: 0;
+  color: var(--sys-field-line);
+  font-size: var(--sys-body-secondary-size);
+  line-height: var(--sys-body-secondary-leading);
+  font-weight: var(--ht-weight-bold);
+  /*
+   * 아래에서 올라오는 등장은 transform 만 다룬다. opacity 를 애니메이션에
+   * 포함하면(fill-mode both) 종료 후에도 값이 고정돼 past-* 의 흐려짐이
+   * 무력화된다 — 실측으로 확인했다.
+   */
+  animation: lecture-rise 720ms var(--sys-ease-standard);
+  transition:
+    opacity 520ms var(--sys-ease-standard),
+    filter 520ms var(--sys-ease-standard);
+}
+
+/* 지금 나온 줄 — 또렷하게 */
+.lecture-line.current {
+  opacity: 1;
+  filter: none;
+}
+
+/* 지나간 줄은 멀어질수록 흐려진다. 기억처럼. */
+.lecture-line.past-1 {
+  opacity: 0.5;
+}
+.lecture-line.past-2 {
+  opacity: 0.28;
+  filter: blur(0.4px);
+}
+.lecture-line.past-3 {
+  opacity: 0.16;
+  filter: blur(0.8px);
+}
+
+/*
+ * "FUTSAL" — 화면을 꽉 채우는 흰 대문자. 아래에 붉은 잔상이 깔린다.
+ * 참고한 연출(스포츠 다큐의 "FIGHT" 타이틀)의 특징을 따랐다:
+ * 거대한 산세리프, 좁은 자간, 흰색, 붉은 글리치 잔상.
+ */
+.lecture-line.big {
+  /* 보드 폭에 맞춰 최대한 크게. clamp 로 좁은 화면에서도 넘치지 않는다. */
+  font-size: clamp(40px, 19vw, 76px);
+  line-height: 1.02;
+  /* 좁은 자간 + 굵게 — 글자들이 서로 붙어 덩어리로 보인다 */
+  letter-spacing: -0.02em;
+  font-weight: 900;
+  color: var(--sys-field-line);
+  text-align: center;
+  text-transform: uppercase;
+  /* 잔상이 글자 밖으로 나가도 잘리지 않게 */
+  padding: 2px 0;
+}
+
+.lecture-line.big.current {
+  animation:
+    lecture-rise 720ms var(--sys-ease-standard),
+    /* 붉은 잔상이 아래로 번지며 가라앉는다 */ lecture-glitch 1600ms
+      var(--sys-ease-standard) 200ms both;
+}
+
+@keyframes lecture-glitch {
+  0% {
+    text-shadow:
+      0 0 0 transparent,
+      0 0 0 transparent;
+  }
+  18% {
+    /* 순간적으로 좌우로 찢어지며 붉은 잔상이 튄다 */
+    text-shadow:
+      -3px 3px 0 var(--sys-status-danger),
+      2px -1px 0 color-mix(in srgb, var(--sys-accent-on-dark) 70%, transparent);
+  }
+  30% {
+    text-shadow:
+      2px 4px 0 var(--sys-status-danger),
+      -1px -1px 0 transparent;
+  }
+  100% {
+    /* 아래로 가라앉아 옅은 붉은 그림자만 남는다 */
+    text-shadow: 0 6px 14px color-mix(in srgb, var(--sys-status-danger) 45%, transparent);
+  }
+}
+
+@keyframes lecture-rise {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes lecture-toll {
+  0% {
+    text-shadow: none;
+  }
+  35% {
+    text-shadow: 0 0 22px color-mix(in srgb, var(--sys-accent-on-dark) 60%, transparent);
+  }
+  100% {
+    text-shadow: none;
+  }
+}
+
+/* 움직임을 줄이라는 설정이면 페이드만 남긴다 */
+@media (prefers-reduced-motion: reduce) {
+  .lecture-line,
+  .lecture-line.big.current {
+    animation: none;
+  }
+}
+
+.lecture-count {
+  margin: var(--ht-space-xxs) 0 0;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
+  text-align: center;
+}
+
+/*
+ * "다른 방법으로 거절" — 다음 관문으로 넘어가는 탈출 버튼.
+ * 스테이지마다 마진 처리가 제각각(없음/인라인 10px)이라 위 버튼 줄에 붙어
+ * 보였다. 클래스로 통일한다.
+ */
+.stage-escape {
+  margin-top: var(--ht-space-xxs);
+}
+
 .reject-footer {
   margin-top: var(--ht-space-xs);
 }
