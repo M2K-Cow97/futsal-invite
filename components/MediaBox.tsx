@@ -25,7 +25,16 @@ export function MediaBox({
         </span>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element -- onError 폴백이 필요해 next/image 를 쓰지 않는다
-        <img src={src} alt={alt} onError={() => setFailed(true)} />
+        <img
+          src={src}
+          alt={alt}
+          /*
+           * 에셋이 큰 경우(훈시 사진은 2674x2216) 디코딩이 메인 스레드를 막아
+           * 화면 전환이 뚝 끊긴다. async 로 넘겨 렌더를 막지 않게 한다.
+           */
+          decoding="async"
+          onError={() => setFailed(true)}
+        />
       )}
     </div>
   );
