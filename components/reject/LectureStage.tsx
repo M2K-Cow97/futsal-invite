@@ -38,7 +38,7 @@ export function LectureStage({ onClose }: StageProps) {
   return (
     <RejectShell title="FUTSAL" subtitle="거절 심사가 종료되었습니다. 잠시 앉으세요.">
       {/* 이 밈의 핵심은 표정이다. 파일이 없으면 이모지로 폴백된다. */}
-      <MediaBox src="/assets/lecture.png" alt="훈시" fallback="🧑‍🏫" />
+      <MediaBox src="/assets/lecture.gif" alt="훈시" fallback="🧑‍🏫" />
 
       <div className="lecture-board">
         {LINES.slice(0, step + 1).map((line, i) => (

@@ -287,6 +287,30 @@ body {
   animation: kick 420ms var(--sys-ease-standard) forwards;
 }
 
+/*
+ * 발차기 스프라이트. /assets/kick.gif 가 있으면 이미지가 이모지를 덮고,
+ * 없으면 (onError → .failed) 이미지가 사라져 뒤의 이모지가 드러난다.
+ * 애니메이션 중 리렌더 없이 폴백되게 CSS 로 처리한다.
+ */
+.kick-img {
+  position: absolute;
+  inset: 0;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  /* 이모지 자리를 덮도록 살짝 올린다 */
+  transform: translate(-16px, -16px);
+}
+
+.kick-img.failed {
+  display: none;
+}
+
+/* 이미지가 성공하면 이모지는 가린다 */
+.kick-img:not(.failed) + .kick-emoji {
+  visibility: hidden;
+}
+
 @keyframes kick {
   0% {
     opacity: 0;

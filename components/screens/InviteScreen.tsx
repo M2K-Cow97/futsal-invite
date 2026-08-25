@@ -176,7 +176,24 @@ export function InviteScreen({
 
         {kick && (
           <span className="kick" style={{ left: kick.x, top: kick.y }} key={kick.id}>
-            🦵
+            {/*
+              에셋이 있으면 이미지, 없으면 이모지로 폴백한다. MediaBox 를 쓰지
+              않는 이유는 이 연출이 박스가 아니라 튀어나오는 스프라이트라서다.
+              onError 에서 상태를 바꾸면 420ms 애니메이션이 끊기므로, 실패한
+              이미지를 숨기고 뒤의 이모지가 드러나게 한다(CSS).
+            */}
+            <img
+              className="kick-img"
+              src="/assets/kick.gif"
+              alt=""
+              aria-hidden="true"
+              onError={(e) => {
+                e.currentTarget.classList.add('failed');
+              }}
+            />
+            <span className="kick-emoji" aria-hidden="true">
+              🦵
+            </span>
           </span>
         )}
 

@@ -91,7 +91,7 @@ export function PositionScreen({
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal">
             <MediaBox
-              src={fw === 3 ? '/assets/ronaldo-stern.png' : '/assets/ronaldo-warn.png'}
+              src={fw === 3 ? '/assets/ronaldo-stern.gif' : '/assets/ronaldo-warn.gif'}
               alt="호날두"
               fallback={fw === 3 ? '🐐' : fw === 2 ? '😠' : '🤨'}
             />
