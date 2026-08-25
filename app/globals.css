@@ -1312,10 +1312,20 @@ body {
   flex-direction: column;
   justify-content: flex-end;
   gap: var(--ht-space-xxs);
-  min-height: 176px;
+  min-height: 200px;
   padding: var(--ht-space-xs);
   margin-bottom: var(--ht-space-xs);
-  background: var(--sys-field-surface);
+  /*
+   * 무채색 어두운 벽. 참고 연출의 배경이 콘크리트 톤이라 초록 필드보다
+   * 이쪽이 "훈시" 분위기에 맞는다. neutral.950 → 900 으로 결을 준다.
+   */
+  background:
+    repeating-linear-gradient(
+      100deg,
+      transparent 0 6px,
+      color-mix(in srgb, var(--ht-neutral-0) 3%, transparent) 6px 12px
+    ),
+    linear-gradient(160deg, var(--ht-neutral-800) 0%, var(--ht-neutral-950) 100%);
   border-radius: var(--sys-radius-md);
   /* 위로 밀려난 줄이 경계에서 자연스럽게 사라지게 */
   mask-image: linear-gradient(to bottom, transparent, #000 28%);
@@ -1358,19 +1368,53 @@ body {
   filter: blur(0.8px);
 }
 
-/* "FUTSAL" — 그 자체로 화면을 채우는 단어 */
+/*
+ * "FUTSAL" — 화면을 꽉 채우는 흰 대문자. 아래에 붉은 잔상이 깔린다.
+ * 참고한 연출(스포츠 다큐의 "FIGHT" 타이틀)의 특징을 따랐다:
+ * 거대한 산세리프, 좁은 자간, 흰색, 붉은 글리치 잔상.
+ */
 .lecture-line.big {
-  font-size: var(--sys-heading-h1-size);
-  line-height: var(--sys-heading-h1-leading);
-  letter-spacing: 0.08em;
-  color: var(--sys-accent-on-dark);
+  /* 보드 폭에 맞춰 최대한 크게. clamp 로 좁은 화면에서도 넘치지 않는다. */
+  font-size: clamp(40px, 19vw, 76px);
+  line-height: 1.02;
+  /* 좁은 자간 + 굵게 — 글자들이 서로 붙어 덩어리로 보인다 */
+  letter-spacing: -0.02em;
+  font-weight: 900;
+  color: var(--sys-field-line);
+  text-align: center;
+  text-transform: uppercase;
+  /* 잔상이 글자 밖으로 나가도 잘리지 않게 */
+  padding: 2px 0;
 }
 
 .lecture-line.big.current {
-  /* 낮게 울리는 느낌 — 커졌다 제자리로 */
   animation:
     lecture-rise 720ms var(--sys-ease-standard),
-    lecture-toll 1400ms var(--sys-ease-standard) 300ms;
+    /* 붉은 잔상이 아래로 번지며 가라앉는다 */ lecture-glitch 1600ms
+      var(--sys-ease-standard) 200ms both;
+}
+
+@keyframes lecture-glitch {
+  0% {
+    text-shadow:
+      0 0 0 transparent,
+      0 0 0 transparent;
+  }
+  18% {
+    /* 순간적으로 좌우로 찢어지며 붉은 잔상이 튄다 */
+    text-shadow:
+      -3px 3px 0 var(--sys-status-danger),
+      2px -1px 0 color-mix(in srgb, var(--sys-accent-on-dark) 70%, transparent);
+  }
+  30% {
+    text-shadow:
+      2px 4px 0 var(--sys-status-danger),
+      -1px -1px 0 transparent;
+  }
+  100% {
+    /* 아래로 가라앉아 옅은 붉은 그림자만 남는다 */
+    text-shadow: 0 6px 14px color-mix(in srgb, var(--sys-status-danger) 45%, transparent);
+  }
 }
 
 @keyframes lecture-rise {
