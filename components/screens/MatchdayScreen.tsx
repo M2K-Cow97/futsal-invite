@@ -8,6 +8,9 @@
  * - readonly: 초대 흐름. 주최자가 정한 일정을 보여주고 게스트 이름만 받는다.
  */
 
+/** 구장 사진 폴백. 스크래핑 실패·외부 이미지 로드 실패 시 쓴다. */
+const VENUE_FALLBACK = '/venue-default';
+
 export type MatchInfo = {
   matchDate: string;
   matchTime: string;
@@ -117,13 +120,23 @@ export function MatchdayScreen({
 
       {isPast && <p className="warn">이미 지난 경기예요 🥲</p>}
 
-      {/* 구장 사진. 스크래핑 실패·미입력 시 기본 이미지로 폴백한다. */}
+      {/*
+        구장 사진. 스크래핑이 실패했거나 남의 이미지가 로드되지 않으면
+        기본 이미지로 폴백한다 — 외부 이미지는 언제든 사라질 수 있으므로
+        onError 폴백이 없으면 깨진 자리가 남는다(실측으로 확인).
+      */}
       {match.matchUrl && (
         <img
           className="venue-photo"
-          src={match.venueImage ?? '/venue-default'}
+          src={match.venueImage ?? VENUE_FALLBACK}
           alt={`${match.venue} 사진`}
           loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            const img = e.currentTarget;
+            if (img.src.endsWith(VENUE_FALLBACK)) return; // 폴백까지 실패하면 그만둔다
+            img.src = VENUE_FALLBACK;
+          }}
         />
       )}
 

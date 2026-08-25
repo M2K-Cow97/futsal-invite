@@ -347,10 +347,14 @@ body {
   width: 100%;
   aspect-ratio: 4 / 3;
   margin-bottom: var(--ht-space-xs);
-  background: var(--app-sunken);
-  border: 2px dashed var(--app-edge-strong);
   border-radius: var(--sys-radius-lg);
   overflow: hidden;
+}
+
+/* 에셋이 없어 이모지로 폴백할 때만 "자리" 를 그린다. */
+.media-box.is-fallback {
+  background: var(--app-sunken);
+  border: 2px dashed var(--app-edge-strong);
 }
 
 .media-box img {
@@ -1301,45 +1305,100 @@ body {
   accent-color: var(--app-green);
 }
 
-/* ⑦ 훈시 — 한 문장씩 쌓이는 자막 */
+/* ⑦ 훈시 — 한 문장씩 아련하게 올라오는 자막 */
 
 .lecture-board {
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   gap: var(--ht-space-xxs);
-  min-height: 168px;
+  min-height: 176px;
   padding: var(--ht-space-xs);
   margin-bottom: var(--ht-space-xs);
-  /* 칠판 톤. 어두운 표면이라 on-inverse 토큰을 쓴다. */
   background: var(--sys-field-surface);
   border-radius: var(--sys-radius-md);
+  /* 위로 밀려난 줄이 경계에서 자연스럽게 사라지게 */
+  mask-image: linear-gradient(to bottom, transparent, #000 28%);
+  overflow: hidden;
 }
 
 .lecture-line {
   margin: 0;
-  color: color-mix(in srgb, var(--sys-field-line) 55%, transparent);
+  color: var(--sys-field-line);
   font-size: var(--sys-body-secondary-size);
   line-height: var(--sys-body-secondary-leading);
   font-weight: var(--ht-weight-bold);
-  animation: lecture-in var(--sys-duration-slow) var(--sys-ease-standard);
+  /*
+   * 아래에서 올라오는 등장은 transform 만 다룬다. opacity 를 애니메이션에
+   * 포함하면(fill-mode both) 종료 후에도 값이 고정돼 past-* 의 흐려짐이
+   * 무력화된다 — 실측으로 확인했다.
+   */
+  animation: lecture-rise 720ms var(--sys-ease-standard);
+  transition:
+    opacity 520ms var(--sys-ease-standard),
+    filter 520ms var(--sys-ease-standard);
 }
 
-/* 지금 나온 줄만 또렷하게. 지나간 줄은 흐리게 쌓인다. */
+/* 지금 나온 줄 — 또렷하게 */
 .lecture-line.current {
-  color: var(--sys-field-line);
-  font-size: var(--sys-heading-h4-size);
-  line-height: var(--sys-heading-h4-leading);
-  letter-spacing: var(--sys-heading-h4-tracking);
+  opacity: 1;
+  filter: none;
 }
 
-@keyframes lecture-in {
+/* 지나간 줄은 멀어질수록 흐려진다. 기억처럼. */
+.lecture-line.past-1 {
+  opacity: 0.5;
+}
+.lecture-line.past-2 {
+  opacity: 0.28;
+  filter: blur(0.4px);
+}
+.lecture-line.past-3 {
+  opacity: 0.16;
+  filter: blur(0.8px);
+}
+
+/* "FUTSAL" — 그 자체로 화면을 채우는 단어 */
+.lecture-line.big {
+  font-size: var(--sys-heading-h1-size);
+  line-height: var(--sys-heading-h1-leading);
+  letter-spacing: 0.08em;
+  color: var(--sys-accent-on-dark);
+}
+
+.lecture-line.big.current {
+  /* 낮게 울리는 느낌 — 커졌다 제자리로 */
+  animation:
+    lecture-rise 720ms var(--sys-ease-standard),
+    lecture-toll 1400ms var(--sys-ease-standard) 300ms;
+}
+
+@keyframes lecture-rise {
   from {
-    opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(14px);
   }
   to {
-    opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes lecture-toll {
+  0% {
+    text-shadow: none;
+  }
+  35% {
+    text-shadow: 0 0 22px color-mix(in srgb, var(--sys-accent-on-dark) 60%, transparent);
+  }
+  100% {
+    text-shadow: none;
+  }
+}
+
+/* 움직임을 줄이라는 설정이면 페이드만 남긴다 */
+@media (prefers-reduced-motion: reduce) {
+  .lecture-line,
+  .lecture-line.big.current {
+    animation: none;
   }
 }
 

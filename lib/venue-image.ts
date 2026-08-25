@@ -17,8 +17,15 @@ const ALLOWED_HOSTS = ['plabfootball.com', 'plab-football.com'];
 
 /** 응답을 기다리는 한도. 남의 서버가 느려도 우리 요청이 매달려 있지 않게. */
 const TIMEOUT_MS = 4000;
-/** HTML 을 이만큼만 읽는다. og:image 는 <head> 에 있어 앞부분이면 충분하다. */
-const MAX_BYTES = 256 * 1024;
+/**
+ * HTML 을 이만큼까지만 읽는다.
+ *
+ * 처음엔 256KB 로 잡았는데 플랩 페이지에서 실패했다 — Next.js 앱이라 <head>
+ * 앞부분이 스크립트·프리로드 링크로 가득 차 og:image 가 256KB 이후에 나온다.
+ * "og:image 는 앞부분에 있다" 는 가정이 틀렸다. 넉넉히 잡고, 대신 찾는 즉시
+ * 읽기를 멈춘다(아래 루프).
+ */
+const MAX_BYTES = 1024 * 1024;
 
 export function isScrapeAllowed(rawUrl: string): boolean {
   try {
@@ -31,20 +38,35 @@ export function isScrapeAllowed(rawUrl: string): boolean {
   }
 }
 
-/** <head> 에서 og:image / twitter:image 를 찾는다. */
+/**
+ * <head> 에서 og:image / twitter:image 를 찾는다.
+ *
+ * 속성 순서를 가정하지 않는다 — <meta property content/> 와
+ * <meta content property/> 가 모두 쓰이고, 자기닫힘 슬래시(`/>`)가 붙기도 한다.
+ * 그래서 meta 태그를 통째로 뽑은 뒤 그 안에서 개별 속성을 읽는다.
+ * (순서를 가정한 정규식은 플랩의 실제 HTML 에서 매칭에 실패했다)
+ */
 function extractImage(html: string, pageUrl: string): string | null {
-  const patterns = [
-    /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
-    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
-    /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,
-  ];
+  const metas = html.match(/<meta\b[^>]*>/gi) ?? [];
 
-  for (const re of patterns) {
-    const m = html.match(re);
-    if (!m?.[1]) continue;
+  const pick = (keys: string[]): string | null => {
+    for (const tag of metas) {
+      const key = tag.match(/(?:property|name)\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
+      if (!key || !keys.includes(key)) continue;
+      const content = tag.match(/content\s*=\s*["']([^"']*)["']/i)?.[1];
+      if (content) return content;
+    }
+    return null;
+  };
+
+  // og:image 우선, 없으면 twitter:image.
+  const candidates = [pick(['og:image', 'og:image:url']), pick(['twitter:image'])];
+
+  for (const raw of candidates) {
+    if (!raw) continue;
     try {
       // 상대 경로일 수 있으므로 페이지 URL 기준으로 절대화한다.
-      const abs = new URL(m[1], pageUrl);
+      const abs = new URL(raw, pageUrl);
       // 이미지도 https 만 받는다 — http 이미지는 브라우저가 차단한다.
       if (abs.protocol !== 'https:') continue;
       return abs.toString();
@@ -79,28 +101,20 @@ export async function fetchVenueImage(rawUrl: string): Promise<string | null> {
     if (!res.ok) return null;
     if (!res.headers.get('content-type')?.includes('text/html')) return null;
 
-    // 전체를 받지 않고 앞부분만 읽는다.
-    const reader = res.body?.getReader();
-    if (!reader) return null;
+    /*
+     * res.text() 로 받는다. 직접 스트림을 읽어 TextDecoder 로 풀면 안 된다 —
+     * 플랩은 gzip 으로 응답하므로 raw 바이트를 디코딩하면 깨진 문자열이 나오고
+     * og:image 를 영원히 못 찾는다(실측). text() 는 압축 해제를 대신 해준다.
+     *
+     * 크기는 Content-Length 로 먼저 걸러 거대한 페이지를 받지 않게 한다.
+     */
+    const declared = Number(res.headers.get('content-length') ?? 0);
+    if (declared > MAX_BYTES) return null;
 
-    const chunks: Uint8Array[] = [];
-    let total = 0;
-    while (total < MAX_BYTES) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      total += value.length;
-    }
-    void reader.cancel();
+    const html = await res.text();
+    if (html.length > MAX_BYTES * 4) return null;
 
-    const merged = new Uint8Array(total);
-    let at = 0;
-    for (const c of chunks) {
-      merged.set(c, at);
-      at += c.length;
-    }
-
-    return extractImage(new TextDecoder().decode(merged), rawUrl);
+    return extractImage(html, rawUrl);
   } catch {
     // 타임아웃·네트워크 오류·파싱 실패 — 모두 폴백으로 간다.
     return null;
