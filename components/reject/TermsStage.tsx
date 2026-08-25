@@ -24,7 +24,7 @@ const CLAUSE_TEXT = [
   '본 조항의 해석은 주최자에게 유리한 방향으로 한다.',
 ];
 
-export function TermsStage({ onClose }: StageProps) {
+export function TermsStage({ onGiveUp, onClose }: StageProps) {
   /** 연출 타이머. 언마운트 시 자동 정리된다. */
   const timers = useTimers();
   const boxRef = useRef<HTMLDivElement>(null);
@@ -92,6 +92,16 @@ export function TermsStage({ onClose }: StageProps) {
           {exhausted ? '…그냥 풋살할게' : '그냥 할래'}
         </button>
       </div>
+
+      {/*
+        약관을 끝까지 읽은 사람에게만 마지막 관문(훈시)이 열린다.
+        동의 체크박스는 영원히 비활성이므로 거절은 여기서도 성립하지 않는다.
+      */}
+      {exhausted && (
+        <button type="button" className="btn btn-primary btn-block stage-escape" onClick={onGiveUp}>
+          그래도 거절하겠다
+        </button>
+      )}
     </RejectShell>
   );
 }

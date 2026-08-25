@@ -529,6 +529,18 @@ body {
   vertical-align: middle;
 }
 
+/* 구장 사진. 예약 페이지에서 가져오거나 기본 이미지로 폴백한다. */
+.venue-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-bottom: var(--ht-space-xs);
+  object-fit: cover;
+  background: var(--app-sunken);
+  border: 1px solid var(--app-edge);
+  border-radius: var(--sys-radius-md);
+}
+
 /* 경기 예약 페이지 링크. 스킴은 서버에서 http/https 로 제한한다. */
 .match-link {
   color: var(--sys-text-accent);
@@ -1258,6 +1270,56 @@ body {
   height: 17px;
   flex-shrink: 0;
   accent-color: var(--app-green);
+}
+
+/* ⑦ 훈시 — 한 문장씩 쌓이는 자막 */
+
+.lecture-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ht-space-xxs);
+  min-height: 168px;
+  padding: var(--ht-space-xs);
+  margin-bottom: var(--ht-space-xs);
+  /* 칠판 톤. 어두운 표면이라 on-inverse 토큰을 쓴다. */
+  background: var(--sys-field-surface);
+  border-radius: var(--sys-radius-md);
+}
+
+.lecture-line {
+  margin: 0;
+  color: color-mix(in srgb, var(--sys-field-line) 55%, transparent);
+  font-size: var(--sys-body-secondary-size);
+  line-height: var(--sys-body-secondary-leading);
+  font-weight: var(--ht-weight-bold);
+  animation: lecture-in var(--sys-duration-slow) var(--sys-ease-standard);
+}
+
+/* 지금 나온 줄만 또렷하게. 지나간 줄은 흐리게 쌓인다. */
+.lecture-line.current {
+  color: var(--sys-field-line);
+  font-size: var(--sys-heading-h4-size);
+  line-height: var(--sys-heading-h4-leading);
+  letter-spacing: var(--sys-heading-h4-tracking);
+}
+
+@keyframes lecture-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lecture-count {
+  margin: var(--ht-space-xxs) 0 0;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-bold);
+  text-align: center;
 }
 
 /*

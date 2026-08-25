@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { InviteFlow } from '@/components/InviteFlow';
 import { db } from '@/lib/db';
 import { invites, responses } from '@/lib/schema';
+import { fetchVenueImage } from '@/lib/venue-image';
 import { isPastDate } from '@/lib/validation';
 
 type Props = { params: Promise<{ slug: string }> };
@@ -76,6 +77,13 @@ export default async function InvitePage({ params }: Props) {
 
   const counts = await loadCounts(invite.id).catch(() => null);
 
+  /*
+   * 구장 이미지. 예약 페이지에서 대표 이미지를 긁어오고, 실패하면 기본 이미지를
+   * 쓴다(남의 서비스에 의존하는 기능이라 실패를 정상 경로로 본다).
+   * 저장하지 않고 렌더 시점에 가져온다 — 예약 페이지의 사진이 바뀌면 따라간다.
+   */
+  const venueImage = invite.matchUrl ? await fetchVenueImage(invite.matchUrl) : null;
+
   return (
     <InviteFlow
       slug={slug}
@@ -86,6 +94,7 @@ export default async function InvitePage({ params }: Props) {
         matchTime: invite.matchTime.slice(0, 5),
         venue: invite.venue,
         matchUrl: invite.matchUrl,
+        venueImage,
       }}
       isPast={isPastDate(invite.matchDate)}
     />

@@ -14,6 +14,8 @@ export type MatchInfo = {
   venue: string;
   /** 플랩·매치 등 경기 예약 페이지 링크. 주최자가 넣지 않았으면 null. */
   matchUrl?: string | null;
+  /** 예약 페이지에서 가져온 구장 사진. 없으면 기본 이미지를 쓴다. */
+  venueImage?: string | null;
 };
 
 function formatDate(iso: string): string {
@@ -114,6 +116,16 @@ export function MatchdayScreen({
       <p className="subtitle">날짜·시간·구장은 이미 정해졌어. 이름만 알려줘!</p>
 
       {isPast && <p className="warn">이미 지난 경기예요 🥲</p>}
+
+      {/* 구장 사진. 스크래핑 실패·미입력 시 기본 이미지로 폴백한다. */}
+      {match.matchUrl && (
+        <img
+          className="venue-photo"
+          src={match.venueImage ?? '/venue-default'}
+          alt={`${match.venue} 사진`}
+          loading="lazy"
+        />
+      )}
 
       <dl style={{ margin: '0 0 20px' }}>
         <div className="readonly-row">

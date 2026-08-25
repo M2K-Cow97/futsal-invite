@@ -3,14 +3,24 @@
 import { useState } from 'react';
 import { FreekickStage } from './FreekickStage';
 import { KeypadStage } from './KeypadStage';
+import { LectureStage } from './LectureStage';
 import { LeverStage } from './LeverStage';
 import { ReasonStage } from './ReasonStage';
 import { TermsStage } from './TermsStage';
 import { TiltStage } from './TiltStage';
 import type { StageId } from './types';
 
-/** 거절 시도가 통과해야 하는 관문 순서. 마지막(terms)은 탈출구가 없다. */
-const ORDER: StageId[] = ['reason', 'lever', 'tilt', 'freekick', 'keypad', 'terms'];
+/** 거절 시도가 통과해야 하는 관문 순서. 마지막(lecture)은 탈출구가 없다. */
+const ORDER: StageId[] = [
+  'reason',
+  'lever',
+  'tilt',
+  'freekick',
+  'keypad',
+  'terms',
+  // 마지막. 게임을 다 통과(=실패)한 사람에게 남는 건 훈시뿐이다.
+  'lecture',
+];
 
 /**
  * 거절 관문 컨트롤러.
@@ -36,5 +46,7 @@ export function RejectGauntlet({ onClose }: { onClose: () => void }) {
       return <KeypadStage {...props} />;
     case 'terms':
       return <TermsStage {...props} />;
+    case 'lecture':
+      return <LectureStage {...props} />;
   }
 }

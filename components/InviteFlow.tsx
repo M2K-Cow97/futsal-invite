@@ -42,8 +42,11 @@ export function InviteFlow({
     setScreen('siuuu');
   }
 
-  // FW 도 선택 가능하다. 예전에는 팝업으로 막았지만 지금은 인원만 보여준다.
-  async function submitPosition(position: Position) {
+  /*
+   * FW 는 인자로 올 수 없다 — PositionScreen 이 3단 경고로 막고, 타입으로도
+   * 배제한다 (spec SC-005). 인원 표시는 유지하되 공격수만 확정 경로가 없다.
+   */
+  async function submitPosition(position: Exclude<Position, 'FW'>) {
     setSubmitting(true);
     setError(null);
     try {
@@ -100,6 +103,7 @@ export function InviteFlow({
             submitting={submitting}
             error={error}
             counts={counts}
+            guestName={guestName}
             onSelect={submitPosition}
           />
         )}
