@@ -91,6 +91,37 @@ export function onTilt(handler: (normalized: number, raw: number) => void): () =
 }
 
 /**
+ * 2축 기울기를 구독한다. 좌우는 `gamma`, 전후는 `beta` 를 쓴다.
+ * 둘 다 -1~1 로 정규화해 넘긴다 (x: 오른쪽이 +, y: 앞으로 기울이면 +).
+ *
+ * `beta` 는 폰을 완전히 세우면 짐벌락에 걸리므로, 편안한 자세인 20~70도를
+ * 중립 ±로 매핑한다. 화면을 보려면 어차피 폰을 조금 눕히기 때문이다.
+ */
+export function onTilt2D(
+  handler: (x: number, y: number) => void,
+): () => void {
+  /** beta 중립값(도). 이 각도를 y=0 으로 본다. */
+  const BETA_NEUTRAL = 45;
+  /** 중립에서 이만큼 기울이면 최대 입력. */
+  const BETA_RANGE = 25;
+  const GAMMA_RANGE = 35;
+
+  function listener(e: DeviceOrientationEvent) {
+    const { gamma, beta } = e;
+    if (gamma === null || beta === null) return;
+    // 짐벌락 구간에서는 gamma 부호가 뒤집힌다.
+    if (Math.abs(beta) > 80) return;
+
+    const x = Math.max(-1, Math.min(1, gamma / GAMMA_RANGE));
+    const y = Math.max(-1, Math.min(1, (beta - BETA_NEUTRAL) / BETA_RANGE));
+    handler(x, y);
+  }
+
+  window.addEventListener('deviceorientation', listener);
+  return () => window.removeEventListener('deviceorientation', listener);
+}
+
+/**
  * 진동. **iOS 사파리는 Vibration API 를 지원하지 않는다** (iOS 26 기준).
  * 안드로이드 크롬에서만 동작하므로 햅틱에 의존하는 연출은 만들지 않는다.
  */

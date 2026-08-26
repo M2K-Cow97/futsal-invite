@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { MediaBox } from '../MediaBox';
 import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
@@ -56,6 +57,8 @@ export function KeypadStage({ onGiveUp, onClose }: StageProps) {
       title="라커룸 인증"
       subtitle="거절은 호날두 본인의 동의가 필요합니다. 라커룸 비밀번호를 입력하세요."
     >
+      <MediaBox src="/assets/ronaldo-stern.gif" alt="라커룸을 지키는 호날두" fallback="🐐" />
+
       <div className="keypad-display">
         {checking ? (
           <span className="keypad-checking">확인 중…</span>

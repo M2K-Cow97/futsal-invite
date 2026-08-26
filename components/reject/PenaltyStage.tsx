@@ -6,8 +6,8 @@ import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
-/** 이만큼 실패하면 다음 관문으로 넘어갈 수 있게 해준다. */
-const GIVE_UP_AFTER = 3;
+/** 한 번만 실패해도 다음 관문으로 넘어갈 수 있다. */
+const GIVE_UP_AFTER = 1;
 /** 한 번 당길 때 오르는 양(%). */
 const PULL_GAIN = 7.5;
 /** 호날두가 되감는 속도(%/초). 손을 놓으면 순식간에 빼앗긴다. */
@@ -57,6 +57,7 @@ export function PenaltyStage({ onGiveUp, onClose }: StageProps) {
   const [attempts, setAttempts] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [taunt, setTaunt] = useState<string | null>(null);
+  const [assetOk, setAssetOk] = useState(true);
 
   const gaugeRef = useRef(0);
   const peakRef = useRef(0);
@@ -159,7 +160,12 @@ export function PenaltyStage({ onGiveUp, onClose }: StageProps) {
           ⚽
         </span>
         <span className="tug-him" aria-hidden="true">
-          🧍‍♂️
+          {assetOk ? (
+            // eslint-disable-next-line @next/next/no-img-element -- onError 폴백이 필요하다
+            <img src="/assets/ronaldo-stern.gif" alt="" onError={() => setAssetOk(false)} />
+          ) : (
+            '🧍‍♂️'
+          )}
         </span>
         {taunt && <span className="tug-taunt">{taunt}</span>}
       </div>

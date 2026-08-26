@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { buzz } from '@/lib/tilt';
+import { playSound } from '@/lib/sound';
 import { MediaBox } from '../MediaBox';
 import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
@@ -21,6 +22,15 @@ const LINES: { text: string; big?: boolean }[] = [
 
 /** 줄이 바뀌기 전 최소 여백. 너무 빨리 넘기면 아련함이 죽는다. */
 const BEAT_MS = 900;
+
+/**
+ * 훈시 음성. 파일을 넣으면 화면과 함께 재생된다.
+ * **없어도 동작한다** — `playSound` 가 실패를 조용히 무시한다.
+ *
+ * 자동재생 정책 때문에 사용자 제스처("포기해." 탭)로 진입한 이 화면에서만
+ * 소리가 난다. 새로고침으로 바로 열면 무음일 수 있다.
+ */
+const LECTURE_VOICE = '/assets/lecture-voice.mp3';
 
 /**
  * 마지막 관문: 훈시.
@@ -43,6 +53,15 @@ export function LectureStage({ onClose }: StageProps) {
      정리(clearTimeout)를 확실히 해 중복 타이머가 남지 않게 한다. */
 
   const last = step >= LINES.length - 1;
+
+  /* 화면 진입과 함께 훈시 음성을 재생한다. StrictMode 의 이중 실행으로
+     소리가 겹치지 않게 ref 로 한 번만 트리거한다. */
+  const voicedRef = useRef(false);
+  useEffect(() => {
+    if (voicedRef.current) return;
+    voicedRef.current = true;
+    playSound(LECTURE_VOICE);
+  }, []);
 
   useEffect(() => {
     setReady(false);

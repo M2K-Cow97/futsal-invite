@@ -1,148 +1,162 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { buzz } from '@/lib/tilt';
 import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
-const GIVE_UP_AFTER = 3;
+/** 한 번만 실패해도 다음 관문으로 넘어갈 수 있다. */
+const GIVE_UP_AFTER = 1;
 
-/** 실패 사유. 매번 다른 핑계가 나와야 킹받는다. */
-const EXCUSES = [
-  '골키퍼가 막았습니다. 반응속도 0.01초.',
-  '골대를 맞고 나왔습니다. 굴산대 판정.',
-  'VAR 확인 중… 오프사이드입니다. 공에 발이 닿기 전에.',
-  '바람이 불었습니다. 재시도해 주세요.',
-  '골키퍼가 손을 안 썼는데도 막혔습니다.',
-  '득점했지만 심판이 못 봤습니다.',
+type Spot = { id: string; label: string; col: number; row: number };
+
+/** 막을 수 있는 6곳. 어디를 골라도 들어간다. */
+const SPOTS: Spot[] = [
+  { id: 'tl', label: '좌측 상단', col: 0, row: 0 },
+  { id: 'tc', label: '중앙 상단', col: 1, row: 0 },
+  { id: 'tr', label: '우측 상단', col: 2, row: 0 },
+  { id: 'bl', label: '좌측 하단', col: 0, row: 1 },
+  { id: 'bc', label: '중앙 하단', col: 1, row: 1 },
+  { id: 'br', label: '우측 하단', col: 2, row: 1 },
 ];
 
-type Phase = 'aiming' | 'flying' | 'result';
+/**
+ * 결과 문구. **맞춰도 들어간다** — 무회전킥이 너무 강해서 손을 맞고 들어간다.
+ * 못 맞추면 그냥 반대편으로 들어간다.
+ */
+const SAVED_BUT_IN = [
+  '손에 맞았습니다. 그대로 골망으로 들어갑니다',
+  '방향은 맞췄습니다. 무회전킥이 손을 튕겨냈습니다',
+  '닿았는데 밀렸습니다. 킥이 너무 강합니다',
+  '펀칭했지만 공이 그대로 들어갔습니다',
+];
+const MISSED = [
+  '반대편으로 들어갔습니다',
+  '무회전이라 공이 늦게 꺾였습니다',
+  '읽지 못했습니다',
+  '공이 흔들리다 반대로 갔습니다',
+];
 
+type Phase = 'pick' | 'kicking' | 'result';
+
+/**
+ * 무회전 프리킥 막기 — 나는 호날두의 동생이고, 형이 프리킥을 막아보라고 한다.
+ *
+ * 6곳 중 하나를 고르면 호날두가 찬다. **어디를 골라도 골이 된다**:
+ * 맞추면 무회전킥이 너무 강해 손을 맞고 들어가고, 못 맞추면 반대편으로 들어간다.
+ * 방향을 맞췄다는 사실을 알려주기 때문에 "다음엔 될 것 같은" 착각이 남는다.
+ */
 export function FreekickStage({ onGiveUp, onClose }: StageProps) {
-  /** 연출 타이머. 언마운트 시 자동 정리된다. */
   const timers = useTimers();
-  const [power, setPower] = useState(0);
-  const [phase, setPhase] = useState<Phase>('aiming');
+  const [phase, setPhase] = useState<Phase>('pick');
+  const [picked, setPicked] = useState<Spot | null>(null);
+  const [shot, setShot] = useState<Spot | null>(null);
   const [attempts, setAttempts] = useState(0);
-  const [excuse, setExcuse] = useState<string | null>(null);
-  const [ballX, setBallX] = useState(8);
-  const risingRef = useRef(true);
-  const rafRef = useRef<number | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [wasRight, setWasRight] = useState(false);
+  const [assetOk, setAssetOk] = useState(true);
 
-  // 파워 게이지가 계속 왕복한다. 멈추려면 탭해야 한다.
-  useEffect(() => {
-    if (phase !== 'aiming') return;
-
-    let last = performance.now();
-    function tick(now: number) {
-      const dt = now - last;
-      last = now;
-      setPower((p) => {
-        const speed = dt * 0.14;
-        let next = risingRef.current ? p + speed : p - speed;
-        if (next >= 100) {
-          next = 100;
-          risingRef.current = false;
-        } else if (next <= 0) {
-          next = 0;
-          risingRef.current = true;
-        }
-        return next;
-      });
-      rafRef.current = requestAnimationFrame(tick);
-    }
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [phase]);
-
-  function shoot() {
-    if (phase !== 'aiming') return;
-    setPhase('flying');
-
-    // 공은 항상 골키퍼까지 날아간다. 파워가 완벽해도 결과는 같다.
-    setBallX(72);
+  function pick(spot: Spot) {
+    if (phase !== 'pick') return;
+    setPicked(spot);
+    setPhase('kicking');
+    setMessage('호날두가 달려옵니다…');
+    buzz(15);
 
     timers.set(() => {
+      // 절반 정도는 방향을 맞춘 것으로 처리해 "거의 됐다" 는 감각을 준다.
+      const right = Math.random() < 0.45;
+      const target = right
+        ? spot
+        : (SPOTS.filter((s) => s.id !== spot.id)[
+            Math.floor(Math.random() * (SPOTS.length - 1))
+          ] as Spot);
+
+      setShot(target);
+      setWasRight(right);
+      setMessage(
+        right
+          ? SAVED_BUT_IN[Math.floor(Math.random() * SAVED_BUT_IN.length)]
+          : MISSED[Math.floor(Math.random() * MISSED.length)],
+      );
       setAttempts((n) => n + 1);
-      setExcuse(EXCUSES[Math.floor(Math.random() * EXCUSES.length)]);
       setPhase('result');
-    }, 900);
+      buzz([50, 40, 50]);
+    }, 1400);
   }
 
-  function retry() {
-    setBallX(8);
-    setExcuse(null);
-    setPower(0);
-    risingRef.current = true;
-    setPhase('aiming');
+  function again() {
+    setPicked(null);
+    setShot(null);
+    setMessage(null);
+    setPhase('pick');
   }
-
-  const zone = power > 74 && power < 82;
 
   return (
     <RejectShell
-      title="거절 프리킥"
-      subtitle="골을 넣으면 거절이 인정됩니다. 파워를 완벽하게 맞추세요."
+      title="무회전 프리킥 막기"
+      subtitle="형이 프리킥을 막아보라고 합니다. 한 번이라도 막으면 거절이 접수됩니다."
     >
-      <div className="pitch">
-        <div className="pitch-keeper" aria-hidden="true">
-          🧍‍♂️
-        </div>
-        <div className="pitch-goal" aria-hidden="true" />
-        <div
-          className={`pitch-ball${phase === 'flying' ? ' flying' : ''}`}
-          style={{ left: `${ballX}%` }}
-          aria-hidden="true"
-        >
-          ⚽
-        </div>
-        <span className="pitch-keeper-label">키퍼: 호날두 · 키 187cm</span>
+      <div className="gk-goal">
+        {SPOTS.map((s) => {
+          const isPick = picked?.id === s.id;
+          const isShot = phase === 'result' && shot?.id === s.id;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              className={`gk-cell${isPick ? ' picked' : ''}${isShot ? ' scored' : ''}`}
+              disabled={phase !== 'pick'}
+              onClick={() => pick(s)}
+            >
+              <span className="gk-cell-label">{s.label}</span>
+              {isShot && <span className="gk-ball">⚽</span>}
+              {isPick && phase !== 'pick' && <span className="gk-glove">🧤</span>}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="power-wrap">
-        <div className="power-track">
-          <div className="power-sweet" />
-          <div className="power-fill" style={{ width: `${power}%` }} />
-        </div>
-        <span className={`power-num${zone ? ' zone' : ''}`}>{Math.round(power)}%</span>
+      <div className="gk-kicker">
+        {assetOk ? (
+          // eslint-disable-next-line @next/next/no-img-element -- onError 폴백이 필요하다
+          <img
+            src="/assets/kick.gif"
+            alt="프리킥을 차는 호날두"
+            onError={() => setAssetOk(false)}
+          />
+        ) : (
+          <span className="gk-kicker-fallback">🦵</span>
+        )}
       </div>
 
-      {phase === 'result' && excuse ? (
-        <p className="lever-msg bad">{excuse}</p>
+      <p className="aim-readout">
+        {phase === 'result' && wasRight ? '방향 적중 · ' : ''}실점 {attempts}회
+      </p>
+
+      {message ? (
+        <p className={`lever-msg${phase === 'result' ? ' bad' : ''}`}>{message}</p>
       ) : (
-        <p className="lever-hint">
-          {phase === 'flying' ? '…' : '초록 구간에서 탭하세요 (75~81%)'}
-        </p>
+        <p className="lever-hint">어디로 올지 골라 손을 뻗으세요</p>
       )}
 
-      <div className="modal-actions">
-        {phase === 'aiming' && (
-          <button type="button" className="btn btn-accent" onClick={shoot}>
-            슛! ⚽
-          </button>
-        )}
-        {phase === 'result' && (
-          <button type="button" className="btn btn-accent" onClick={retry}>
-            다시 차기
-          </button>
-        )}
+      {phase === 'result' && (
+        <button type="button" className="btn btn-primary btn-block" onClick={again}>
+          다시 막기
+        </button>
+      )}
+
+      <div className="reject-footer modal-actions">
         <button type="button" className="btn btn-ghost" onClick={onClose}>
           그냥 할래
         </button>
+        {attempts >= GIVE_UP_AFTER && (
+          <button type="button" className="btn btn-accent" onClick={onGiveUp}>
+            다른 방법으로 거절
+          </button>
+        )}
       </div>
-
-      {attempts >= GIVE_UP_AFTER && (
-        <button
-          type="button"
-          className="btn btn-primary btn-block stage-escape"
-          onClick={onGiveUp}
-        >
-          다른 방법으로 거절
-        </button>
-      )}
     </RejectShell>
   );
 }

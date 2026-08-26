@@ -8,8 +8,8 @@ import { useTimers } from './useTimers';
 
 /** 버텨야 하는 시간(ms). 10초. */
 const SURVIVE_MS = 10_000;
-/** 이만큼 실패하면 다음 관문으로 넘어갈 수 있게 해준다. */
-const GIVE_UP_AFTER = 3;
+/** 한 번만 실패해도 다음 관문으로 넘어갈 수 있다. */
+const GIVE_UP_AFTER = 1;
 /** 플레이어 반폭(%). 판정에 쓴다. */
 const PLAYER_HALF = 7;
 /** 낙하물 반폭(%). */

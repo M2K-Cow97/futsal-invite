@@ -1,24 +1,33 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { buzz } from '@/lib/tilt';
+import {
+  buzz,
+  detectTilt,
+  onTilt2D,
+  requestTilt,
+  type TiltSupport,
+} from '@/lib/tilt';
 import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
-/** 이만큼 실패하면 다음 관문으로 넘어갈 수 있게 해준다. */
-const GIVE_UP_AFTER = 3;
+/** 한 번만 실패해도 다음 관문으로 넘어갈 수 있다. */
+const GIVE_UP_AFTER = 1;
 /** 수비수 수. */
 const DEFENDERS = 5;
-/** 충돌 판정 반경(%). 공 반폭 + 수비 반폭. */
+/** 충돌 판정 반경(%). */
 const HIT_RADIUS = 8.5;
-/** 골라인 도달선(%). 오른쪽 끝. */
+/** 골라인 도달선(%). */
 const GOAL_X = 92;
+/** 기울기 → 가속 계수. 공이 미끄러지는 느낌을 준다. */
+const TILT_ACCEL = 78;
+/** 속도 감쇠. 1에 가까울수록 잘 미끄러진다. */
+const FRICTION = 0.94;
 
 type Foe = { id: number; x: number; y: number; vx: number; vy: number };
-type Phase = 'ready' | 'running' | 'stolen' | 'almost' | 'betrayed';
+type Phase = 'intro' | 'running' | 'stolen' | 'almost' | 'betrayed';
 
-/** 공을 빼앗겼을 때 사유. */
 const STEALS = [
   '호날두가 공을 뺏었습니다',
   '태클에 걸렸습니다',
@@ -26,36 +35,57 @@ const STEALS = [
   '공을 빼앗겼습니다',
 ];
 
+/** 센서를 못 쓰는 이유별 안내. */
+const FALLBACK_REASON: Partial<Record<TiltSupport, string>> = {
+  insecure: '보안 연결(https)이 아니라 센서를 쓸 수 없어요. 손가락 모드로 진행합니다',
+  'inapp-browser':
+    '카톡 브라우저는 센서를 막아요. 손가락 모드로 진행합니다 (⋯ → 다른 브라우저로 열기)',
+  unsupported: '이 브라우저는 기울기 센서를 지원하지 않아요. 손가락 모드로 진행합니다',
+  denied: '센서 권한이 없어 손가락 모드로 진행합니다',
+};
+
 /**
- * ① 호날두를 뚫어라 — 공을 끌고 반대쪽 골대까지 간다.
+ * ① 호날두를 뚫어라 — 폰을 기울여 공을 굴려 골라인까지 간다.
  *
- * 필드에 호날두 여럿이 빠르게 돌아다닌다. 손가락으로 공을 끌어 오른쪽
- * 골라인까지 도달해야 거절이 접수된다. 부딪히면 처음부터.
+ * 손가락으로 끌면 골대를 바로 찍어 이길 수 있었다. 이제 **폰 기울기로
+ * 공을 굴린다** — 관성이 있어 정밀 제어가 어렵고, 수비수를 피하려면
+ * 미리 기울여 감속해야 한다. 센서를 못 쓰는 환경에서는 손가락 드래그로
+ * 대체하되, 그때도 같은 물리를 적용해 순간이동을 막는다.
  *
- * 물론 접수되지 않는다 — 골라인에 닿으면 "오프사이드" 로 무효가 된다.
+ * 물론 도달해도 접수되지 않는다 — "오프사이드" 로 무효가 된다.
  */
 export function LeverStage({ onGiveUp, onClose }: StageProps) {
   const timers = useTimers();
   const fieldRef = useRef<HTMLDivElement>(null);
 
-  const [phase, setPhase] = useState<Phase>('ready');
+  const [support, setSupport] = useState<TiltSupport>('unsupported');
+  const [phase, setPhase] = useState<Phase>('intro');
   const [ball, setBall] = useState({ x: 6, y: 50 });
   const [foes, setFoes] = useState<Foe[]>([]);
   const [attempts, setAttempts] = useState(0);
   const [best, setBest] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
+  const [assetOk, setAssetOk] = useState(true);
 
   const ballRef = useRef({ x: 6, y: 50 });
+  const velRef = useRef({ x: 0, y: 0 });
+  const tiltRef = useRef({ x: 0, y: 0 });
   const foesRef = useRef<Foe[]>([]);
   const bestRef = useRef(0);
   const rafRef = useRef<number | null>(null);
-  const phaseRef = useRef<Phase>('ready');
+  const phaseRef = useRef<Phase>('intro');
+  /** 'tilt' 또는 'touch'. 배신 후에도 같은 모드로 돌아간다. */
+  const modeRef = useRef<'tilt' | 'touch'>('tilt');
+
+  useEffect(() => {
+    setSupport(detectTilt());
+  }, []);
 
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
 
-  /** 골라인 도달 → 오프사이드로 무효. 이 게임의 배신이다. */
+  /** 골라인 도달 → 오프사이드로 무효. */
   const betray = useCallback(() => {
     setPhase('almost');
     setMessage('골라인 도달! 거절 접수 중…');
@@ -68,12 +98,11 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
       setAttempts((n) => n + 1);
       timers.set(() => {
         setMessage(null);
-        setPhase('ready');
+        setPhase('stolen');
       }, 1600);
     }, 900);
   }, [timers]);
 
-  /** 공을 빼앗겼다. */
   const steal = useCallback(() => {
     setPhase('stolen');
     setAttempts((n) => n + 1);
@@ -81,11 +110,11 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
     buzz([50, 40, 50]);
   }, []);
 
-  function start() {
+  const reset = useCallback(() => {
     ballRef.current = { x: 6, y: 50 };
+    velRef.current = { x: 0, y: 0 };
     setBall({ x: 6, y: 50 });
 
-    // 수비수를 필드 오른쪽에 흩어 놓고 무작위 방향으로 달리게 한다.
     const init: Foe[] = Array.from({ length: DEFENDERS }, (_, i) => {
       const angle = Math.random() * Math.PI * 2;
       const speed = 34 + Math.random() * 26;
@@ -101,9 +130,31 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
     setFoes(init);
     setMessage(null);
     setPhase('running');
+  }, []);
+
+  /** 시작. iOS 는 이 탭 안에서 권한을 요청해야 한다. */
+  async function start() {
+    if (support === 'needs-permission') {
+      const result = await requestTilt();
+      setSupport(result);
+      modeRef.current = result === 'ready' ? 'tilt' : 'touch';
+      if (result === 'denied') setMessage('센서 권한이 없어 손가락 모드로 진행합니다');
+    } else {
+      modeRef.current = support === 'ready' ? 'tilt' : 'touch';
+      if (support !== 'ready') setMessage(FALLBACK_REASON[support] ?? null);
+    }
+    reset();
   }
 
-  /** 게임 루프: 수비수 이동 + 충돌·골 판정. */
+  /** 센서 구독. */
+  useEffect(() => {
+    if (phase === 'intro' || modeRef.current !== 'tilt') return;
+    return onTilt2D((x, y) => {
+      tiltRef.current = { x, y };
+    });
+  }, [phase]);
+
+  /** 게임 루프: 공 물리 + 수비수 이동 + 판정. */
   useEffect(() => {
     if (phase !== 'running') return;
     let last = performance.now();
@@ -113,19 +164,33 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
       last = now;
       const s = dt / 1000;
 
-      const b0 = ballRef.current;
+      // 공: 기울기로 가속하고 마찰로 감쇠한다.
+      const v = velRef.current;
+      v.x = (v.x + tiltRef.current.x * TILT_ACCEL * s) * FRICTION;
+      v.y = (v.y + tiltRef.current.y * TILT_ACCEL * s) * FRICTION;
+
+      const b = ballRef.current;
+      b.x += v.x * s;
+      b.y += v.y * s;
+
+      // 벽에서 튕긴다.
+      if (b.x < 3) { b.x = 3; v.x = Math.abs(v.x) * 0.4; }
+      else if (b.x > 97) { b.x = 97; v.x = -Math.abs(v.x) * 0.4; }
+      if (b.y < 6) { b.y = 6; v.y = Math.abs(v.y) * 0.4; }
+      else if (b.y > 94) { b.y = 94; v.y = -Math.abs(v.y) * 0.4; }
+
+      setBall({ x: b.x, y: b.y });
+
       const moved = foesRef.current.map((f) => {
         let { x, y, vx, vy } = f;
-        // id 0 은 추격자. 공 쪽으로 방향을 꾸준히 튼다 — 버티기만 하는 전략을 막는다.
+        // id 0 은 추격자. 버티기 전략을 막는다.
         if (f.id === 0) {
-          const ang = Math.atan2(b0.y - y, b0.x - x);
-          const sp = 44;
-          vx = vx * 0.9 + Math.cos(ang) * sp * 0.1;
-          vy = vy * 0.9 + Math.sin(ang) * sp * 0.1;
+          const ang = Math.atan2(b.y - y, b.x - x);
+          vx = vx * 0.9 + Math.cos(ang) * 44 * 0.1;
+          vy = vy * 0.9 + Math.sin(ang) * 44 * 0.1;
         }
         x += vx * s;
         y += vy * s;
-        // 벽에서 튕긴다.
         if (x < 10) { x = 10; vx = Math.abs(vx); }
         else if (x > 96) { x = 96; vx = -Math.abs(vx); }
         if (y < 8) { y = 8; vy = Math.abs(vy); }
@@ -135,8 +200,6 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
       foesRef.current = moved;
       setFoes(moved);
 
-      // 충돌 판정
-      const b = ballRef.current;
       for (const f of moved) {
         if (Math.hypot(f.x - b.x, f.y - b.y) <= HIT_RADIUS) {
           steal();
@@ -144,13 +207,11 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
         }
       }
 
-      // 최고 전진 기록
       if (b.x > bestRef.current) {
         bestRef.current = b.x;
         setBest(b.x);
       }
 
-      // 골라인 도달
       if (b.x >= GOAL_X) {
         betray();
         return;
@@ -165,22 +226,27 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
     };
   }, [phase, steal, betray]);
 
-  /** 손가락으로 공을 끈다. */
+  /** 손가락 폴백: 문지른 방향을 기울기처럼 쓴다(순간이동 방지). */
   const drag = useCallback((clientX: number, clientY: number) => {
-    if (phaseRef.current !== 'running') return;
+    if (phaseRef.current !== 'running' || modeRef.current !== 'touch') return;
     const el = fieldRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const x = Math.max(3, Math.min(97, ((clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(6, Math.min(94, ((clientY - rect.top) / rect.height) * 100));
-    ballRef.current = { x, y };
-    setBall({ x, y });
+    const px = ((clientX - rect.left) / rect.width) * 100;
+    const py = ((clientY - rect.top) / rect.height) * 100;
+    const b = ballRef.current;
+    tiltRef.current = {
+      x: Math.max(-1, Math.min(1, (px - b.x) / 22)),
+      y: Math.max(-1, Math.min(1, (py - b.y) / 22)),
+    };
   }, []);
+
+  const usingTilt = modeRef.current === 'tilt' && phase !== 'intro';
 
   return (
     <RejectShell
       title="호날두를 뚫어라"
-      subtitle="공을 끌고 오른쪽 골라인까지 가면 거절이 접수됩니다."
+      subtitle="공을 굴려 오른쪽 골라인까지 가면 거절이 접수됩니다."
     >
       <div
         className="dribble-field"
@@ -196,7 +262,12 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
             style={{ left: `${f.x}%`, top: `${f.y}%` }}
             aria-hidden="true"
           >
-            🧍‍♂️
+            {assetOk ? (
+              // eslint-disable-next-line @next/next/no-img-element -- onError 폴백이 필요하다
+              <img src="/assets/ronaldo-warn.gif" alt="" onError={() => setAssetOk(false)} />
+            ) : (
+              '🧍‍♂️'
+            )}
           </span>
         ))}
         <span
@@ -217,12 +288,20 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
           {message}
         </p>
       ) : (
-        <p className="lever-hint">공을 문질러 끌고 가세요. 부딪히면 빼앗깁니다</p>
+        <p className="lever-hint">
+          {usingTilt
+            ? '📱 폰을 기울여 공을 굴리세요. 관성이 있어 미리 꺾어야 합니다'
+            : '👆 가고 싶은 방향을 문지르세요'}
+        </p>
       )}
 
-      {(phase === 'ready' || phase === 'stolen') && (
+      {(phase === 'intro' || phase === 'stolen') && (
         <button type="button" className="btn btn-primary btn-block" onClick={start}>
-          {phase === 'stolen' ? '다시 드리블' : '드리블 시작'}
+          {phase === 'stolen'
+            ? '다시 드리블'
+            : support === 'needs-permission'
+              ? '센서 켜고 시작'
+              : '드리블 시작'}
         </button>
       )}
 
