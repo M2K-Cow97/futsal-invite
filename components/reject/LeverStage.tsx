@@ -21,9 +21,9 @@ const HIT_RADIUS = 8.5;
 /** 골라인 도달선(%). */
 const GOAL_X = 92;
 /** 기울기 → 가속 계수. 공이 미끄러지는 느낌을 준다. */
-const TILT_ACCEL = 132;
+const TILT_ACCEL = 200;
 /** 속도 감쇠. 1에 가까울수록 잘 미끄러진다. */
-const FRICTION = 0.955;
+const FRICTION = 0.97;
 
 type Foe = { id: number; x: number; y: number; vx: number; vy: number };
 type Phase = 'intro' | 'running' | 'stolen' | 'almost' | 'betrayed';
@@ -174,10 +174,10 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
       b.y += v.y * s;
 
       // 벽에서 튕긴다.
-      if (b.x < 3) { b.x = 3; v.x = Math.abs(v.x) * 0.4; }
-      else if (b.x > 97) { b.x = 97; v.x = -Math.abs(v.x) * 0.4; }
-      if (b.y < 6) { b.y = 6; v.y = Math.abs(v.y) * 0.4; }
-      else if (b.y > 94) { b.y = 94; v.y = -Math.abs(v.y) * 0.4; }
+      if (b.x < 3) { b.x = 3; v.x = Math.abs(v.x) * 0.25; }
+      else if (b.x > 97) { b.x = 97; v.x = -Math.abs(v.x) * 0.25; }
+      if (b.y < 6) { b.y = 6; v.y = Math.abs(v.y) * 0.25; }
+      else if (b.y > 94) { b.y = 94; v.y = -Math.abs(v.y) * 0.25; }
 
       setBall({ x: b.x, y: b.y });
 

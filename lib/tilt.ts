@@ -80,8 +80,8 @@ export function onTilt2D(
   /** beta 중립값(도). 이 각도를 y=0 으로 본다. */
   const BETA_NEUTRAL = 45;
   /** 중립에서 이만큼 기울이면 최대 입력. */
-  const BETA_RANGE = 25;
-  const GAMMA_RANGE = 35;
+  const BETA_RANGE = 18;
+  const GAMMA_RANGE = 22;
 
   function listener(e: DeviceOrientationEvent) {
     const { gamma, beta } = e;
