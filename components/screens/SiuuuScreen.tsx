@@ -10,7 +10,7 @@ import { MediaBox } from '../MediaBox';
 export function SiuuuScreen({ onNext }: { onNext: () => void }) {
   return (
     <div className="screen">
-      <MediaBox src="/assets/siu.gif" alt="SIU 셀러브레이션" fallback="🕺" />
+      <MediaBox src="/assets/you.gif" alt="SIU 셀러브레이션" fallback="🕺" />
 
       <h2 className="title siu-title">나도 좋siuuuuu</h2>
       <p className="subtitle">경기는 이미 잡혀 있어. 참석만 확정하면 돼!</p>

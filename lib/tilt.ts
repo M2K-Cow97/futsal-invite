@@ -68,29 +68,6 @@ export async function requestTilt(): Promise<TiltSupport> {
 }
 
 /**
- * 좌우 기울기를 구독한다. 세로(portrait)로 든 상태에서 폰을 좌우로 기울이면
- * `gamma` 가 변한다 (-90 ~ 90). 값을 -1~1 로 정규화해 넘긴다.
- *
- * `gamma` 는 폰을 세우면(beta ±90 근처) 짐벌락으로 값이 튀고 부호가 뒤집힌다.
- * 그래서 ±45도만 유효 입력으로 쓰고, 폰이 너무 누워/서 있으면 입력을 무시한다.
- */
-export function onTilt(handler: (normalized: number, raw: number) => void): () => void {
-  function listener(e: DeviceOrientationEvent) {
-    const gamma = e.gamma;
-    const beta = e.beta;
-    if (gamma === null) return;
-    // 짐벌락 구간에서는 gamma 가 신뢰할 수 없다.
-    if (beta !== null && Math.abs(beta) > 75) return;
-    // ±45도를 최대 입력으로 본다. 팔이 아프지 않은 범위.
-    const clamped = Math.max(-45, Math.min(45, gamma));
-    handler(clamped / 45, gamma);
-  }
-
-  window.addEventListener('deviceorientation', listener);
-  return () => window.removeEventListener('deviceorientation', listener);
-}
-
-/**
  * 2축 기울기를 구독한다. 좌우는 `gamma`, 전후는 `beta` 를 쓴다.
  * 둘 다 -1~1 로 정규화해 넘긴다 (x: 오른쪽이 +, y: 앞으로 기울이면 +).
  *

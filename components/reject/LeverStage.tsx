@@ -21,9 +21,9 @@ const HIT_RADIUS = 8.5;
 /** 골라인 도달선(%). */
 const GOAL_X = 92;
 /** 기울기 → 가속 계수. 공이 미끄러지는 느낌을 준다. */
-const TILT_ACCEL = 78;
+const TILT_ACCEL = 132;
 /** 속도 감쇠. 1에 가까울수록 잘 미끄러진다. */
-const FRICTION = 0.94;
+const FRICTION = 0.955;
 
 type Foe = { id: number; x: number; y: number; vx: number; vy: number };
 type Phase = 'intro' | 'running' | 'stolen' | 'almost' | 'betrayed';
@@ -241,7 +241,12 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
     };
   }, []);
 
-  const usingTilt = modeRef.current === 'tilt' && phase !== 'intro';
+  /* intro 단계에서는 아직 모드가 확정되지 않았으므로 support 로 판단한다.
+     그렇지 않으면 센서를 쓸 기기에도 "문지르세요" 가 떠서 잘못 안내된다. */
+  const usingTilt =
+    phase === 'intro'
+      ? support === 'ready' || support === 'needs-permission'
+      : modeRef.current === 'tilt';
 
   return (
     <RejectShell

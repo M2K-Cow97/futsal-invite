@@ -20,7 +20,7 @@ export type StageId =
   | 'reason'
   | 'dodge'
   | 'lever'
-  | 'tilt'
+  | 'siu'
   | 'penalty'
   | 'freekick'
   | 'keypad'

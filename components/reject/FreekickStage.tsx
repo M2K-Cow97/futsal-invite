@@ -66,7 +66,8 @@ export function FreekickStage({ onGiveUp, onClose }: StageProps) {
 
     timers.set(() => {
       // 절반 정도는 방향을 맞춘 것으로 처리해 "거의 됐다" 는 감각을 준다.
-      const right = Math.random() < 0.45;
+      // 절반은 방향 적중(막았는데 들어감), 절반은 오판(반대편으로 들어감).
+      const right = Math.random() < 0.5;
       const target = right
         ? spot
         : (SPOTS.filter((s) => s.id !== spot.id)[
@@ -106,13 +107,23 @@ export function FreekickStage({ onGiveUp, onClose }: StageProps) {
             <button
               key={s.id}
               type="button"
-              className={`gk-cell${isPick ? ' picked' : ''}${isShot ? ' scored' : ''}`}
+              className={[
+                'gk-cell',
+                isPick ? 'picked' : '',
+                isShot ? (wasRight ? 'scored deflected' : 'scored') : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
               disabled={phase !== 'pick'}
               onClick={() => pick(s)}
             >
               <span className="gk-cell-label">{s.label}</span>
-              {isShot && <span className="gk-ball">⚽</span>}
-              {isPick && phase !== 'pick' && <span className="gk-glove">🧤</span>}
+              {isShot && (
+                <span className={`gk-ball${wasRight ? ' deflected' : ''}`}>⚽</span>
+              )}
+              {isPick && phase !== 'pick' && (
+                <span className={`gk-glove${wasRight ? ' touched' : ' missed'}`}>🧤</span>
+              )}
             </button>
           );
         })}
@@ -132,7 +143,12 @@ export function FreekickStage({ onGiveUp, onClose }: StageProps) {
       </div>
 
       <p className="aim-readout">
-        {phase === 'result' && wasRight ? '방향 적중 · ' : ''}실점 {attempts}회
+        {phase === 'result'
+          ? wasRight
+            ? '손에 맞고 실점 · '
+            : '방향 오판 · '
+          : ''}
+        실점 {attempts}회
       </p>
 
       {message ? (

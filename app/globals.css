@@ -1514,62 +1514,7 @@ body {
   margin-top: var(--ht-space-xs);
 }
 
-/* ─── 거절 관문: 기울기 보정 ───────────────────────
-   폰을 기울여 공을 목표 구역에 세우는 단계.
-   센서 미지원/권한 거부 시 드래그 폴백으로 같은 UI 를 쓴다. */
 
-.tilt-track {
-  position: relative;
-  height: 62px;
-  margin-bottom: 12px;
-  background: var(--sys-field-surface);
-  border: 1px solid var(--sys-field-surface);
-  border-radius: var(--sys-radius-md);
-  overflow: hidden;
-  touch-action: none; /* 드래그 폴백이 스크롤에 먹히지 않게 */
-}
-
-/* 예전엔 노랑 구역. green 계열로 흡수했다.
-   단 green.500 은 green.900 트랙과 명도차가 부족해 목표 구역이 안 읽힌다
-   → 어두운 표면 위에서는 accent-on-dark(green.200) 를 쓴다. */
-.tilt-zone {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  background: color-mix(in srgb, var(--sys-accent-on-dark) 30%, transparent);
-  border-left: 2px dashed var(--sys-accent-on-dark);
-  border-right: 2px dashed var(--sys-accent-on-dark);
-}
-
-.tilt-ball {
-  position: absolute;
-  top: 50%;
-  font-size: 26px;
-  transform: translate(-50%, -50%);
-  will-change: left;
-}
-
-.tilt-hold {
-  height: 7px;
-  background: var(--app-sunken);
-  border: 1px solid var(--app-edge);
-  border-radius: var(--sys-radius-pill);
-  overflow: hidden;
-}
-
-.tilt-hold-fill {
-  height: 100%;
-  background: var(--app-green);
-}
-
-.tilt-hold-label {
-  display: block;
-  margin: 5px 0 0;
-  color: var(--app-ink-faint);
-  font-size: var(--sys-label-tertiary-size);
-  font-weight: var(--ht-weight-bold);
-  text-align: right;
-}
 
 /* ─── 거절 관문: 사유 심사 ─────────────────────────
    사유를 고르면 그 사유가 오히려 확정의 근거로 되돌아온다. */
@@ -1865,4 +1810,128 @@ body {
   width: 2px;
   margin-left: -1px;
   background: var(--app-danger);
+}
+
+/* 프리킥 결과 구분 — 손에 맞고 들어간 것과 반대편으로 들어간 것 */
+
+.gk-cell.deflected {
+  border-style: solid;
+  border-width: 2px;
+}
+
+/* 손에 맞고 튕겨 들어가는 연출 */
+.gk-ball.deflected {
+  animation: gk-deflect 420ms cubic-bezier(0.3, 1.3, 0.6, 1);
+}
+
+@keyframes gk-deflect {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translate(-16px, -22px);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.25) translate(6px, -6px) rotate(120deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 손이 닿았을 때 — 흔들린다 */
+.gk-glove.touched {
+  animation: gk-glove-shake 380ms ease-out;
+}
+
+@keyframes gk-glove-shake {
+  0%, 100% { transform: none; }
+  25% { transform: translate(-3px, -2px) rotate(-14deg); }
+  60% { transform: translate(3px, 1px) rotate(10deg); }
+}
+
+/* 손이 헛나갔을 때 — 흐려진다 */
+.gk-glove.missed {
+  opacity: 0.4;
+}
+
+/* SIUUU 심사 — 실제 마이크 음량을 재지만 호날두 기준선에 닿지 않는다 */
+
+.siu-meter {
+  position: relative;
+  height: 200px;
+  margin-bottom: var(--ht-space-xxs);
+  background: var(--sys-field-surface);
+  border-radius: var(--sys-radius-md);
+  overflow: hidden;
+  contain: paint;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+/* 아래에서 올라오는 음량 게이지 */
+.siu-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    var(--sys-accent-on-dark),
+    color-mix(in srgb, var(--sys-accent-on-dark) 55%, transparent)
+  );
+  will-change: height;
+}
+
+/* 호날두 기준선 */
+.siu-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 2px;
+  background: var(--app-danger);
+  box-shadow: 0 0 8px var(--app-danger);
+}
+
+.siu-line-label {
+  position: absolute;
+  top: -18px;
+  right: 6px;
+  padding: 2px 7px;
+  color: var(--app-danger-fg);
+  font-size: 10px;
+  font-weight: var(--ht-weight-bold);
+  background: var(--app-danger-bg);
+  border-radius: 999px;
+}
+
+/* 최고 기록 — 여기까지 갔었다는 표시 */
+.siu-peak {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 2px;
+  background: color-mix(in srgb, var(--app-danger) 55%, transparent);
+}
+
+.siu-face {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  font-size: 34px;
+  line-height: 64px;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.siu-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }

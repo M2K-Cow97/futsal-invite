@@ -8,7 +8,7 @@ import { DodgeStage } from './DodgeStage';
 import { LeverStage } from './LeverStage';
 import { PenaltyStage } from './PenaltyStage';
 import { ReasonStage } from './ReasonStage';
-import { TiltStage } from './TiltStage';
+import { SiuStage } from './SiuStage';
 import type { StageId } from './types';
 
 /** 거절 시도가 통과해야 하는 관문 순서. 마지막(lecture)은 탈출구가 없다. */
@@ -17,7 +17,8 @@ const ORDER: StageId[] = [
   // 호우 피하기 — 하늘에서 호날두가 쏟아진다. 아주 어렵다.
   'dodge',
   'lever',
-  'tilt',
+  // SIUUU 지르기 — 실제 마이크로 음량을 잰다. 기준선에 닿을 수 없다.
+  'siu',
   // 페널티킥 공 뺏기 — 100% 에 닿을 수 없다.
   'penalty',
   'freekick',
@@ -44,8 +45,8 @@ export function RejectGauntlet({ onClose }: { onClose: () => void }) {
       return <DodgeStage {...props} />;
     case 'lever':
       return <LeverStage {...props} />;
-    case 'tilt':
-      return <TiltStage {...props} />;
+    case 'siu':
+      return <SiuStage {...props} />;
     case 'penalty':
       return <PenaltyStage {...props} />;
     case 'freekick':
