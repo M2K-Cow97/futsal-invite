@@ -7,8 +7,6 @@ import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
-/** 한 번만 실패해도 다음 관문으로 넘어갈 수 있다. */
-const GIVE_UP_AFTER = 1;
 /** 호날두 기준선(%). 절대 닿을 수 없는 높이. */
 const RONALDO_LINE = 92;
 /** 이 시간 안에 기준선을 넘겨야 한다. */
@@ -224,12 +222,14 @@ export function SiuStage({ onGiveUp, onClose }: StageProps) {
         <button type="button" className="btn btn-ghost" onClick={onClose}>
           그냥 할래
         </button>
-        {/* 마이크를 못 쓰는 환경도 있으므로 측정 중만 아니면 언제든 넘어갈 수 있다. */}
-        {(attempts >= GIVE_UP_AFTER || phase === 'intro') && (
-          <button type="button" className="btn btn-accent" onClick={onGiveUp}>
-            다른 방법으로 거절
-          </button>
-        )}
+        {/*
+          이 단계는 마이크라는 외부 조건에 의존한다 — 권한이 없거나 인앱 브라우저면
+          측정 자체가 무의미하다. 그래서 다른 단계와 달리 실패 횟수를 요구하지 않고
+          **항상** 넘어갈 수 있게 둔다. 갇히는 건 재미가 아니라 짜증이다.
+        */}
+        <button type="button" className="btn btn-accent" onClick={onGiveUp}>
+          다른 방법으로 거절
+        </button>
       </div>
     </RejectShell>
   );
