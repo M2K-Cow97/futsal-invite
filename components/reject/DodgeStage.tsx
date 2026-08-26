@@ -15,8 +15,8 @@ const PLAYER_HALF = 7;
 /** 낙하물 반폭(%). */
 const DROP_HALF = 8;
 /** 초당 생성 수. 시간이 지나면 늘어난다. */
-const SPAWN_BASE = 2.6;
-const SPAWN_RAMP = 2.4;
+const SPAWN_BASE = 7;
+const SPAWN_RAMP = 9;
 
 type Drop = { id: number; x: number; y: number; vy: number; spin: number };
 type Phase = 'ready' | 'running' | 'hit' | 'almost' | 'betrayed';
@@ -116,7 +116,7 @@ export function DodgeStage({ onGiveUp, onClose }: StageProps) {
           id: idRef.current,
           x: 6 + Math.random() * 88,
           y: -12,
-          vy: 46 + Math.random() * 30 + progress * 52,
+          vy: 105 + Math.random() * 55 + progress * 130,
           spin: Math.random() * 360,
         });
       }

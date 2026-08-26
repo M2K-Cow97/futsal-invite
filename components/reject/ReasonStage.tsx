@@ -8,7 +8,8 @@ import { useTimers } from './useTimers';
 
 const STEP_MS = 620;
 /** 사유를 이만큼 기각당하면 다음 관문으로 넘어갈 수 있다. */
-const GIVE_UP_AFTER = 2;
+/** 사유 하나만 기각당해도 다음 관문으로 넘어갈 수 있다. */
+const GIVE_UP_AFTER = 1;
 
 type Phase = 'menu' | 'input' | 'reviewing' | 'verdict';
 
