@@ -13,24 +13,23 @@ import type { StageProps } from './types';
  * `big` 은 크게 박히는 단어 — "FUTSAL" 처럼 그 자체가 화면을 채워야 하는 줄이다.
  * 나머지는 낮은 목소리로 흐른다.
  */
-const LINES: { text: string; big?: boolean }[] = [
-  { text: '단어 알지?' },
+const LINES: { text: string; big?: boolean; voice?: string }[] = [
+  { text: '단어 알지?', voice: '/assets/vocab.mp3' },
   { text: 'FUTSAL', big: true },
   { text: '오늘 풋살장 나가서 풋살해.' },
-  { text: '나는 오늘 그거, 볼 거야.' },
+  { text: '나는 오늘 그거, 볼 거야.', voice: '/assets/iwilllsee.mp3' },
 ];
 
 /** 줄이 바뀌기 전 최소 여백. 너무 빨리 넘기면 아련함이 죽는다. */
 const BEAT_MS = 900;
 
-/**
- * 훈시 음성. 파일을 넣으면 화면과 함께 재생된다.
+/*
+ * 음성은 줄에 붙어 있다(위 LINES 의 `voice`). 해당 줄이 나타날 때 재생된다.
  * **없어도 동작한다** — `playSound` 가 실패를 조용히 무시한다.
  *
- * 자동재생 정책 때문에 사용자 제스처("포기해." 탭)로 진입한 이 화면에서만
- * 소리가 난다. 새로고침으로 바로 열면 무음일 수 있다.
+ * 자동재생 정책상 사용자 제스처로 진입한 이 화면에서만 소리가 난다.
+ * 새로고침으로 바로 열면 첫 줄이 무음일 수 있다.
  */
-const LECTURE_VOICE = '/assets/lecture-voice.mp3';
 
 /**
  * 마지막 관문: 훈시.
@@ -54,14 +53,15 @@ export function LectureStage({ onClose }: StageProps) {
 
   const last = step >= LINES.length - 1;
 
-  /* 화면 진입과 함께 훈시 음성을 재생한다. StrictMode 의 이중 실행으로
-     소리가 겹치지 않게 ref 로 한 번만 트리거한다. */
-  const voicedRef = useRef(false);
+  /* 줄이 바뀔 때 그 줄의 음성을 재생한다. StrictMode 의 이중 실행이나
+     같은 줄 재렌더로 소리가 겹치지 않게 재생한 줄을 기록해 둔다. */
+  const voicedRef = useRef<Set<number>>(new Set());
   useEffect(() => {
-    if (voicedRef.current) return;
-    voicedRef.current = true;
-    playSound(LECTURE_VOICE);
-  }, []);
+    const voice = LINES[step]?.voice;
+    if (!voice || voicedRef.current.has(step)) return;
+    voicedRef.current.add(step);
+    playSound(voice);
+  }, [step]);
 
   useEffect(() => {
     setReady(false);
