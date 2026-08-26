@@ -6,53 +6,48 @@ import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
-/**
- * 호날두의 수비 반경(트랙 대비 %). 이 안에서 밀면 차단당한다.
- * 좌우로 왕복하므로 "틈"은 호날두가 반대편으로 갔을 때 생긴다.
- */
-const GUARD_HALF = 10;
 /** 이만큼 실패하면 다음 관문으로 넘어갈 수 있게 해준다. */
-const GIVE_UP_AFTER = 4;
-/** 요구되는 돌파 횟수. 한 번은 운으로 뚫을 수 있다. */
-const REQUIRED_BEATS = 3;
-/** 호날두가 좌우로 움직이는 속도(%/초). */
-const SPEED = 96;
+const GIVE_UP_AFTER = 3;
+/** 수비수 수. */
+const DEFENDERS = 5;
+/** 충돌 판정 반경(%). 공 반폭 + 수비 반폭. */
+const HIT_RADIUS = 8.5;
+/** 골라인 도달선(%). 오른쪽 끝. */
+const GOAL_X = 92;
 
-type Phase = 'ready' | 'running' | 'pushing' | 'almost' | 'betrayed' | 'blocked';
+type Foe = { id: number; x: number; y: number; vx: number; vy: number };
+type Phase = 'ready' | 'running' | 'stolen' | 'almost' | 'betrayed';
 
-/** 차단 사유. 뚫려도 결국 다른 핑계가 붙는다. */
-const BLOCKS = [
-  '막혔습니다. 호날두가 먼저 읽었습니다',
-  '몸싸움에서 밀렸습니다',
-  '호날두가 발을 뻗었습니다. 공 빼앗김',
-  '공이 발에서 떨어졌습니다',
+/** 공을 빼앗겼을 때 사유. */
+const STEALS = [
+  '호날두가 공을 뺏었습니다',
+  '태클에 걸렸습니다',
+  '호날두와 부딪혔습니다',
+  '공을 빼앗겼습니다',
 ];
 
 /**
- * ① 호날두를 뚫어라 — 거절하려면 호날두를 드리블로 넘어서야 한다.
+ * ① 호날두를 뚫어라 — 공을 끌고 반대쪽 골대까지 간다.
  *
- * 호날두가 좌우로 움직이며 길을 막는다. 틈이 났을 때 밀어야 통과하고,
- * 수비 반경 안에서 밀면 차단당한다. 타이밍 게임이지만 축구 상황이라
- * 무엇을 왜 하는지 바로 이해된다.
+ * 필드에 호날두 여럿이 빠르게 돌아다닌다. 손가락으로 공을 끌어 오른쪽
+ * 골라인까지 도달해야 거절이 접수된다. 부딪히면 처음부터.
  *
- * 물론 끝내 통과하지 못한다. 3번 뚫으면 "파울" 로 무효가 된다.
+ * 물론 접수되지 않는다 — 골라인에 닿으면 "오프사이드" 로 무효가 된다.
  */
 export function LeverStage({ onGiveUp, onClose }: StageProps) {
   const timers = useTimers();
+  const fieldRef = useRef<HTMLDivElement>(null);
 
   const [phase, setPhase] = useState<Phase>('ready');
-  /** 호날두 위치(%). 좌우로 왕복한다. */
-  const [guard, setGuard] = useState(50);
-  /** 공 위치(%). 밀 때마다 전진한다. */
-  const [ball, setBall] = useState(8);
-  const [beats, setBeats] = useState(0);
+  const [ball, setBall] = useState({ x: 6, y: 50 });
+  const [foes, setFoes] = useState<Foe[]>([]);
   const [attempts, setAttempts] = useState(0);
+  const [best, setBest] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
 
-  const guardRef = useRef(50);
-  const dirRef = useRef(1);
-  const ballRef = useRef(8);
-  const beatsRef = useRef(0);
+  const ballRef = useRef({ x: 6, y: 50 });
+  const foesRef = useRef<Foe[]>([]);
+  const bestRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const phaseRef = useRef<Phase>('ready');
 
@@ -60,7 +55,55 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
     phaseRef.current = phase;
   }, [phase]);
 
-  /** 호날두 왕복 루프. */
+  /** 골라인 도달 → 오프사이드로 무효. 이 게임의 배신이다. */
+  const betray = useCallback(() => {
+    setPhase('almost');
+    setMessage('골라인 도달! 거절 접수 중…');
+    buzz(30);
+
+    timers.set(() => {
+      setPhase('betrayed');
+      setMessage('오프사이드입니다. 호날두보다 앞서 있었습니다');
+      buzz([40, 60, 40]);
+      setAttempts((n) => n + 1);
+      timers.set(() => {
+        setMessage(null);
+        setPhase('ready');
+      }, 1600);
+    }, 900);
+  }, [timers]);
+
+  /** 공을 빼앗겼다. */
+  const steal = useCallback(() => {
+    setPhase('stolen');
+    setAttempts((n) => n + 1);
+    setMessage(STEALS[Math.floor(Math.random() * STEALS.length)]);
+    buzz([50, 40, 50]);
+  }, []);
+
+  function start() {
+    ballRef.current = { x: 6, y: 50 };
+    setBall({ x: 6, y: 50 });
+
+    // 수비수를 필드 오른쪽에 흩어 놓고 무작위 방향으로 달리게 한다.
+    const init: Foe[] = Array.from({ length: DEFENDERS }, (_, i) => {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 34 + Math.random() * 26;
+      return {
+        id: i,
+        x: 22 + Math.random() * 68,
+        y: 10 + Math.random() * 80,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+      };
+    });
+    foesRef.current = init;
+    setFoes(init);
+    setMessage(null);
+    setPhase('running');
+  }
+
+  /** 게임 루프: 수비수 이동 + 충돌·골 판정. */
   useEffect(() => {
     if (phase !== 'running') return;
     let last = performance.now();
@@ -68,16 +111,51 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
     function tick(now: number) {
       const dt = Math.min(48, now - last);
       last = now;
+      const s = dt / 1000;
 
-      guardRef.current += dirRef.current * SPEED * (dt / 1000);
-      if (guardRef.current >= 82) {
-        guardRef.current = 82;
-        dirRef.current = -1;
-      } else if (guardRef.current <= 18) {
-        guardRef.current = 18;
-        dirRef.current = 1;
+      const b0 = ballRef.current;
+      const moved = foesRef.current.map((f) => {
+        let { x, y, vx, vy } = f;
+        // id 0 은 추격자. 공 쪽으로 방향을 꾸준히 튼다 — 버티기만 하는 전략을 막는다.
+        if (f.id === 0) {
+          const ang = Math.atan2(b0.y - y, b0.x - x);
+          const sp = 44;
+          vx = vx * 0.9 + Math.cos(ang) * sp * 0.1;
+          vy = vy * 0.9 + Math.sin(ang) * sp * 0.1;
+        }
+        x += vx * s;
+        y += vy * s;
+        // 벽에서 튕긴다.
+        if (x < 10) { x = 10; vx = Math.abs(vx); }
+        else if (x > 96) { x = 96; vx = -Math.abs(vx); }
+        if (y < 8) { y = 8; vy = Math.abs(vy); }
+        else if (y > 92) { y = 92; vy = -Math.abs(vy); }
+        return { ...f, x, y, vx, vy };
+      });
+      foesRef.current = moved;
+      setFoes(moved);
+
+      // 충돌 판정
+      const b = ballRef.current;
+      for (const f of moved) {
+        if (Math.hypot(f.x - b.x, f.y - b.y) <= HIT_RADIUS) {
+          steal();
+          return;
+        }
       }
-      setGuard(guardRef.current);
+
+      // 최고 전진 기록
+      if (b.x > bestRef.current) {
+        bestRef.current = b.x;
+        setBest(b.x);
+      }
+
+      // 골라인 도달
+      if (b.x >= GOAL_X) {
+        betray();
+        return;
+      }
+
       rafRef.current = requestAnimationFrame(tick);
     }
 
@@ -85,125 +163,66 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [phase]);
+  }, [phase, steal, betray]);
 
-  /** 3번 뚫었다 → 파울로 무효. 이 게임의 배신이다. */
-  const betray = useCallback(() => {
-    setPhase('almost');
-    setMessage('돌파 성공! 거절 접수 중…');
-    buzz(30);
-
-    timers.set(() => {
-      setPhase('betrayed');
-      setMessage('파울입니다. 호날두가 넘어졌습니다');
-      buzz([40, 60, 40]);
-      setAttempts((n) => n + 1);
-
-      timers.set(() => {
-        ballRef.current = 8;
-        beatsRef.current = 0;
-        setBall(8);
-        setBeats(0);
-        setMessage(null);
-        setPhase('running');
-      }, 1300);
-    }, 900);
-  }, [timers]);
-
-  /** 공을 민다. 호날두 수비 반경 안이면 차단. */
-  const push = useCallback(() => {
+  /** 손가락으로 공을 끈다. */
+  const drag = useCallback((clientX: number, clientY: number) => {
     if (phaseRef.current !== 'running') return;
-
-    const blocked = Math.abs(guardRef.current - ballRef.current) <= GUARD_HALF;
-
-    if (blocked) {
-      setAttempts((n) => n + 1);
-      beatsRef.current = 0;
-      ballRef.current = 8;
-      setBeats(0);
-      setBall(8);
-      setPhase('blocked');
-      setMessage(BLOCKS[Math.floor(Math.random() * BLOCKS.length)]);
-      buzz(20);
-      timers.set(() => {
-        setMessage(null);
-        setPhase('running');
-      }, 900);
-      return;
-    }
-
-    // 틈을 노렸다. 공이 전진한다.
-    const next = beatsRef.current + 1;
-    beatsRef.current = next;
-    setBeats(next);
-    ballRef.current = Math.min(92, ballRef.current + 28);
-    setBall(ballRef.current);
-    buzz(15);
-
-    if (next >= REQUIRED_BEATS) {
-      betray();
-      return;
-    }
-
-    setPhase('pushing');
-    setMessage(`뚫었습니다! ${next}/${REQUIRED_BEATS} — 계속 밀어붙이세요`);
-    timers.set(() => {
-      setMessage(null);
-      setPhase('running');
-    }, 650);
-  }, [betray, timers]);
-
-  const running = phase === 'running';
+    const el = fieldRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = Math.max(3, Math.min(97, ((clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(6, Math.min(94, ((clientY - rect.top) / rect.height) * 100));
+    ballRef.current = { x, y };
+    setBall({ x, y });
+  }, []);
 
   return (
     <RejectShell
       title="호날두를 뚫어라"
-      subtitle={`거절하려면 호날두를 넘어서야 합니다. ${REQUIRED_BEATS}번 돌파하면 접수됩니다.`}
+      subtitle="공을 끌고 오른쪽 골라인까지 가면 거절이 접수됩니다."
     >
-      <div className="dribble-pitch">
-        {/* 호날두 수비 반경 — 이 안에서 밀면 막힌다 */}
-        <div
-          className="dribble-guard-zone"
-          style={{ left: `${guard - GUARD_HALF}%`, width: `${GUARD_HALF * 2}%` }}
+      <div
+        className="dribble-field"
+        ref={fieldRef}
+        onPointerMove={(e) => drag(e.clientX, e.clientY)}
+        onPointerDown={(e) => drag(e.clientX, e.clientY)}
+      >
+        <span className="dribble-goalline" aria-hidden="true" />
+        {foes.map((f) => (
+          <span
+            key={f.id}
+            className="dribble-foe"
+            style={{ left: `${f.x}%`, top: `${f.y}%` }}
+            aria-hidden="true"
+          >
+            🧍‍♂️
+          </span>
+        ))}
+        <span
+          className="dribble-ball"
+          style={{ left: `${ball.x}%`, top: `${ball.y}%` }}
           aria-hidden="true"
-        />
-        <div className="dribble-guard" style={{ left: `${guard}%` }} aria-hidden="true">
-          🧍
-        </div>
-        <div className="dribble-ball" style={{ left: `${ball}%` }} aria-hidden="true">
+        >
           ⚽
-        </div>
-        <span className="dribble-goal" aria-hidden="true" />
+        </span>
       </div>
 
       <p className="aim-readout">
-        돌파 {beats}/{REQUIRED_BEATS} · 차단 {attempts}회
+        최고 전진 {Math.round((best / GOAL_X) * 100)}% · 빼앗김 {attempts}회
       </p>
 
       {message ? (
-        <p className={`lever-msg${phase === 'betrayed' || phase === 'blocked' ? ' bad' : ''}`}>
+        <p className={`lever-msg${phase === 'betrayed' || phase === 'stolen' ? ' bad' : ''}`}>
           {message}
         </p>
       ) : (
-        <p className="lever-hint">호날두가 멀어진 순간에 밀어야 합니다</p>
+        <p className="lever-hint">공을 문질러 끌고 가세요. 부딪히면 빼앗깁니다</p>
       )}
 
-      {phase === 'ready' ? (
-        <button
-          type="button"
-          className="btn btn-primary btn-block"
-          onClick={() => setPhase('running')}
-        >
-          드리블 시작
-        </button>
-      ) : (
-        <button
-          type="button"
-          className="btn btn-primary btn-block"
-          disabled={!running}
-          onClick={push}
-        >
-          지금! 밀기
+      {(phase === 'ready' || phase === 'stolen') && (
+        <button type="button" className="btn btn-primary btn-block" onClick={start}>
+          {phase === 'stolen' ? '다시 드리블' : '드리블 시작'}
         </button>
       )}
 

@@ -152,7 +152,8 @@ export function PenaltyStage({ onGiveUp, onClose }: StageProps) {
         </span>
         <span
           className="tug-ball"
-          style={{ left: `${8 + gauge * 0.72}%` }}
+          /* 내 힘(gauge)이 커질수록 공이 내 쪽(왼쪽)으로 온다. */
+          style={{ left: `${80 - gauge * 0.72}%` }}
           aria-hidden="true"
         >
           ⚽

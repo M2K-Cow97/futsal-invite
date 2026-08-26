@@ -1122,56 +1122,47 @@ body {
   background: var(--sys-accent-on-dark);
 }
 
-/* ① 호날두를 뚫어라 — 수비가 멀어진 틈에 공을 밀어 넘어선다 */
+/* ① 호날두를 뚫어라 — 공을 끌고 골라인까지. 부딪히면 빼앗긴다 */
 
-.dribble-pitch {
+.dribble-field {
   position: relative;
-  height: 84px;
+  height: 210px;
   margin-bottom: var(--ht-space-xxs);
   background: var(--sys-field-surface);
   border-radius: var(--sys-radius-md);
   overflow: hidden;
   contain: paint;
+  touch-action: none;
+  cursor: crosshair;
 }
 
-/* 호날두 수비 반경. 이 안에서 밀면 차단된다. */
-.dribble-guard-zone {
+/* 오른쪽 골라인 — 여기 닿으면 도달 */
+.dribble-goalline {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  background: var(--app-danger-bg);
-  border-left: 2px dashed var(--app-danger);
-  border-right: 2px dashed var(--app-danger);
+  top: 8%;
+  bottom: 8%;
+  right: 5%;
+  width: 3px;
+  background: var(--sys-accent-on-dark);
+  box-shadow: 0 0 10px var(--sys-accent-on-dark);
+  opacity: 0.8;
 }
 
-.dribble-guard {
+.dribble-foe {
   position: absolute;
-  top: 8px;
-  margin-left: -14px;
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1;
+  transform: translate(-50%, -50%);
+  will-change: left, top;
 }
 
 .dribble-ball {
   position: absolute;
-  bottom: 10px;
-  margin-left: -11px;
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
-  transition: left 220ms cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-
-/* 오른쪽 끝 골문 */
-.dribble-goal {
-  position: absolute;
-  top: 18px;
-  right: 6px;
-  width: 10px;
-  height: 48px;
-  border: 2px solid var(--sys-accent-on-dark);
-  border-right: none;
-  border-radius: 3px 0 0 3px;
-  opacity: 0.55;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 6px var(--sys-accent-on-dark));
+  will-change: left, top;
 }
 
 .aim-readout {
