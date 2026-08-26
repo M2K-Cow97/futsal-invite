@@ -5,7 +5,8 @@ import { RejectShell } from './RejectShell';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
-const GIVE_UP_AFTER = 4;
+/** 라커룸은 한 번만 틀려도 넘어갈 수 있다 — 여기서 오래 붙잡으면 지친다. */
+const GIVE_UP_AFTER = 1;
 
 /** 매번 자리수가 바뀌는 "힌트". 맞출 수 없다는 걸 늦게 깨닫게 한다. */
 const HINTS = [

@@ -11,8 +11,8 @@ const OPTIONS: { key: Position; name: string; abbr: string }[] = [
   { key: 'GK', name: '골키퍼', abbr: 'GK' },
 ];
 
-/** 공격수를 고르면 나오는 3단 경고. 마지막은 물러날 수밖에 없다. */
-type FwStep = null | 1 | 2 | 3;
+/** 공격수를 고르면 나오는 4단 경고. 마지막은 물러날 수밖에 없다. */
+type FwStep = null | 1 | 2 | 3 | 4;
 
 /**
  * ④ position — 포지션 선택.
@@ -20,7 +20,7 @@ type FwStep = null | 1 | 2 | 3;
  * 포지션별 현재 인원을 실제 데이터로 보여준다("비어 있음" 강조). 자리 사정을
  * 알고 고르게 하는 것이 목적이라 인원으로 막지는 않는다.
  *
- * 단 **공격수는 3단 경고 뒤 물러나게** 한다 (spec SC-005). 주최자가 유일한
+ * 단 **공격수는 4단 경고 뒤 물러나게** 한다 (spec SC-005). 주최자가 유일한
  * 공격수라는 설정이고, 이 컴포넌트에는 onSelect('FW') 를 호출하는 경로가
  * 존재하지 않는다.
  */
@@ -93,13 +93,14 @@ export function PositionScreen({
             <MediaBox
               src={fw === 3 ? '/assets/ronaldo-stern.gif' : '/assets/ronaldo-warn.gif'}
               alt="호날두"
-              fallback={fw === 3 ? '🐐' : fw === 2 ? '😠' : '🤨'}
+              fallback={fw >= 3 ? '🐐' : fw === 2 ? '😠' : '🤨'}
             />
 
             <p className="modal-text">
               {fw === 1 && '미안하지만 공격수는 오직 나뿐이야'}
               {fw === 2 && `${guestName.trim() || '너'}, 넌 공격수를 할 수 없어`}
               {fw === 3 && '날 화나게 하지마 🐐'}
+              {fw === 4 && '약속이 취소되었습니다'}
             </p>
 
             <div className="modal-actions">
@@ -111,10 +112,19 @@ export function PositionScreen({
                 >
                   그래도 할래
                 </button>
+              ) : fw === 3 ? (
+                // 3단에서 버티면 약속이 취소된다. 아직 빠져나갈 수 없다.
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => setFw(4)}
+                >
+                  싫은데
+                </button>
               ) : (
-                // 3단까지 오면 물러나는 선택지만 남는다.
+                // 4단까지 와야 물러나는 선택지가 열린다.
                 <button type="button" className="btn btn-accent" onClick={() => setFw(null)}>
-                  약속 취소 (미안해 다른 포지션 할께)
+                  미안해 다른 포지션 할게
                 </button>
               )}
               {fw < 3 && (

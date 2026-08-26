@@ -89,9 +89,6 @@ export function MatchdayEditor({
           value={value.matchUrl ?? ''}
           onChange={(e) => onChange({ ...value, matchUrl: e.target.value })}
         />
-        <p className="hint" style={{ textAlign: 'left' }}>
-          붙여넣으면 초대장에서 구장 위치·회비를 바로 확인할 수 있어요
-        </p>
       </div>
     </>
   );
