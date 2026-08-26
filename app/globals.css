@@ -1809,7 +1809,8 @@ body {
   font-size: 24px;
   line-height: 1;
   transform: translateY(-50%);
-  transition: left 90ms linear;
+  /* 매 프레임 위치를 갱신하므로 transition 을 걸면 오히려 뒤처져 보인다. */
+  will-change: left;
 }
 
 .tug-taunt {
@@ -1848,7 +1849,7 @@ body {
 .tug-bar-mine {
   height: 100%;
   background: var(--sys-accent-on-dark);
-  transition: width 90ms linear;
+  will-change: width;
 }
 
 /* 최고 기록 눈금 — "여기까지 갔었는데" 를 남겨 계속 매달리게 한다. */
