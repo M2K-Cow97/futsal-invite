@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { FreekickStage } from './FreekickStage';
 import { KeypadStage } from './KeypadStage';
 import { LectureStage } from './LectureStage';
+import { DodgeStage } from './DodgeStage';
 import { LeverStage } from './LeverStage';
+import { PenaltyStage } from './PenaltyStage';
 import { ReasonStage } from './ReasonStage';
 import { TiltStage } from './TiltStage';
 import type { StageId } from './types';
@@ -12,8 +14,12 @@ import type { StageId } from './types';
 /** 거절 시도가 통과해야 하는 관문 순서. 마지막(lecture)은 탈출구가 없다. */
 const ORDER: StageId[] = [
   'reason',
+  // 호우 피하기 — 하늘에서 호날두가 쏟아진다. 아주 어렵다.
+  'dodge',
   'lever',
   'tilt',
+  // 페널티킥 공 뺏기 — 100% 에 닿을 수 없다.
+  'penalty',
   'freekick',
   'keypad',
   // 마지막. 게임을 다 통과(=실패)한 사람에게 남는 건 훈시뿐이다.
@@ -34,10 +40,14 @@ export function RejectGauntlet({ onClose }: { onClose: () => void }) {
   switch (ORDER[index]) {
     case 'reason':
       return <ReasonStage {...props} />;
+    case 'dodge':
+      return <DodgeStage {...props} />;
     case 'lever':
       return <LeverStage {...props} />;
     case 'tilt':
       return <TiltStage {...props} />;
+    case 'penalty':
+      return <PenaltyStage {...props} />;
     case 'freekick':
       return <FreekickStage {...props} />;
     case 'keypad':

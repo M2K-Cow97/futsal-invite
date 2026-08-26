@@ -18,9 +18,10 @@ export type StageProps = {
 
 export type StageId =
   | 'reason'
+  | 'dodge'
   | 'lever'
   | 'tilt'
+  | 'penalty'
   | 'freekick'
   | 'keypad'
-  /** 마지막 훈시. 게임이 아니라 그냥 앉혀놓고 말한다. */
   | 'lecture';

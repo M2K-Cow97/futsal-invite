@@ -38,8 +38,13 @@ async function loadCounts(inviteId: number) {
     .where(eq(responses.inviteId, inviteId))
     .groupBy(responses.position);
 
-  const counts: Record<string, number> = { FW: 0, MF: 0, DF: 0, GK: 0 };
-  for (const r of rows) counts[r.position] = r.value;
+  /*
+   * 주최자는 공격수로 이미 뛰고 있다 ("공격수는 오직 나뿐이야").
+   * FW 는 1명에서 시작한다 — 응답 테이블에는 없지만 자리는 차 있다.
+   * app/api/invites/[slug]/route.ts 와 같은 규칙을 쓴다.
+   */
+  const counts: Record<string, number> = { FW: 1, MF: 0, DF: 0, GK: 0 };
+  for (const r of rows) counts[r.position] += r.value;
   return counts;
 }
 
