@@ -224,7 +224,8 @@ export function SiuStage({ onGiveUp, onClose }: StageProps) {
         <button type="button" className="btn btn-ghost" onClick={onClose}>
           그냥 할래
         </button>
-        {attempts >= GIVE_UP_AFTER && (
+        {/* 마이크를 못 쓰는 환경도 있으므로 측정 중만 아니면 언제든 넘어갈 수 있다. */}
+        {(attempts >= GIVE_UP_AFTER || phase === 'intro') && (
           <button type="button" className="btn btn-accent" onClick={onGiveUp}>
             다른 방법으로 거절
           </button>
