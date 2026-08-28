@@ -113,7 +113,7 @@ body {
   }
 
   .ticket-photo {
-    height: 104px;
+    height: 92px;
   }
 }
 
@@ -2340,12 +2340,13 @@ body {
   display: block;
   width: 100%;
   /*
-   * 잘라내지 않고 축소한다 — cover 로 자르면 두 사람이 프레임 밖으로 밀린다.
-   * contain 이라 좌우에 여백이 생기지만, 티켓 배경과 같은 색이어서 눈에 띄지 않는다.
-   * 폭을 줄이는 방식은 오히려 세로가 커져(비율 유지) 화면을 넘겼다.
+   * 티켓 카드 밖에 놓인 독립 사진. 카드 폭에 맞춰 늘리지 않고 원본 비율대로
+   * 둔다 — 카드 안에 넣었을 때 늘어나거나 잘려 어색했던 것을 분리로 해결했다.
    */
   height: 132px;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto var(--ht-space-xs);
   object-fit: contain;
-  background: var(--sys-surface-inverse);
-  border-top: 1px dashed color-mix(in srgb, var(--sys-field-line) 28%, transparent);
+  border-radius: var(--sys-radius-md);
 }
