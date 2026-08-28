@@ -1940,24 +1940,373 @@ body {
  * 훈시 화면에 미리 박아두는 단어. 무엇에 관한 훈시인지 한눈에 보이게 한다(릴스용).
  * .lecture-line.big 과 같은 크기감을 쓰되, 등장 애니메이션 없이 처음부터 자리를 잡는다.
  */
-.lecture-word {
-  margin: var(--ht-space-xs) 0 0;
-  font-size: clamp(40px, 19vw, 76px);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  font-weight: 900;
-  /* 어두운 보드가 아니라 밝은 카드 위에 놓이므로 본문 색을 쓴다. */
-  color: var(--app-ink);
-  text-align: center;
-  text-transform: uppercase;
-  padding: 2px 0;
+/*
+ * 스크린에 투사된 단어. 어두운 판 위에 흰 글씨를 얹고 주사선·깜빡임을 준다.
+ * 프로젝터가 실제로 켜져 있는 것처럼 보여야 한다.
+ */
+.lecture-screen {
+  position: relative;
+  margin: var(--ht-space-xs) 0 var(--ht-space-xs);
+  padding: var(--ht-space-s) var(--ht-space-xxs);
+  background: var(--sys-field-surface);
+  border-radius: var(--sys-radius-md);
+  overflow: hidden;
+  /* 빛이 판 밖으로 새어 나오는 느낌 */
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--sys-accent-on-dark) 22%, transparent),
+    var(--sys-shadow-md);
+  animation: lecture-projector-on 900ms var(--sys-ease-standard);
 }
 
-/* 게임 목록(/games) — 제목 아래 한 줄 설명 */
-.game-blurb {
+/* 프로젝터 주사선 */
+.lecture-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--sys-field-line) 7%, transparent) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+/* 위에서 아래로 훑고 지나가는 밝은 띠 */
+.lecture-screen::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 38%;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--sys-field-line) 12%, transparent),
+    transparent
+  );
+  animation: lecture-sweep 3.6s linear infinite;
+}
+
+.lecture-word {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  /* 판 안에 들어가야 한다 — 좌우 패딩을 감안해 vw 를 낮춘다. */
+  font-size: clamp(38px, 17vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: 900;
+  color: var(--sys-field-line);
+  text-align: center;
+  text-transform: uppercase;
+  /* 투사광 번짐 + 붉은 잔상 */
+  text-shadow:
+    0 0 18px color-mix(in srgb, var(--sys-field-line) 45%, transparent),
+    0 0 40px color-mix(in srgb, var(--sys-accent-on-dark) 30%, transparent);
+  animation:
+    lecture-word-in 760ms var(--sys-ease-standard) both,
+    lecture-flicker 5s steps(1, end) 900ms infinite;
+}
+
+/* 프로젝터가 켜지며 판이 밝아진다 */
+@keyframes lecture-projector-on {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.7);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes lecture-sweep {
+  0% {
+    top: -40%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+/* 글자가 찢어지며 자리를 잡는다 */
+@keyframes lecture-word-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.18);
+    letter-spacing: 0.12em;
+  }
+  35% {
+    opacity: 1;
+    text-shadow:
+      -4px 3px 0 var(--sys-status-danger),
+      3px -2px 0 color-mix(in srgb, var(--sys-accent-on-dark) 75%, transparent);
+  }
+  70% {
+    text-shadow:
+      2px -1px 0 var(--sys-status-danger),
+      0 0 22px color-mix(in srgb, var(--sys-field-line) 50%, transparent);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    letter-spacing: -0.03em;
+  }
+}
+
+/* 형광등처럼 아주 짧게 깜빡인다 — 계속 켜져 있는 느낌을 준다 */
+@keyframes lecture-flicker {
+  0%,
+  92%,
+  100% {
+    opacity: 1;
+  }
+  93% {
+    opacity: 0.62;
+  }
+  94% {
+    opacity: 1;
+  }
+  96% {
+    opacity: 0.78;
+  }
+  97% {
+    opacity: 1;
+  }
+}
+
+/* ─── /games — 오락기 진입 화면 ─────────────────────
+   초대 흐름과 분리된 독립 화면. 카드형 레이아웃 대신 캐비닛을 세운다. */
+
+.arcade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--ht-space-s) var(--ht-space-xs);
+  /* 어두운 오락실 */
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--sys-accent-on-dark) 12%, transparent), transparent 60%),
+    var(--sys-field-surface);
+}
+
+.arcade-cabinet {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--ht-space-xs);
+  background: color-mix(in srgb, var(--sys-field-surface) 70%, #000);
+  border: 2px solid color-mix(in srgb, var(--sys-accent-on-dark) 35%, transparent);
+  border-radius: var(--sys-radius-lg);
+  box-shadow:
+    0 0 40px color-mix(in srgb, var(--sys-accent-on-dark) 18%, transparent),
+    var(--sys-shadow-md);
+}
+
+/* 간판 */
+.arcade-marquee {
+  padding: var(--ht-space-xs) var(--ht-space-xxs) calc(var(--ht-space-xxs) + 2px);
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sys-accent-on-dark) 22%, transparent),
+    transparent
+  );
+  border-radius: var(--sys-radius-md) var(--sys-radius-md) 0 0;
+}
+
+.arcade-marquee-sub {
   display: block;
-  margin-top: 2px;
-  color: var(--app-ink-faint);
-  font-size: var(--sys-label-tertiary-size);
-  font-weight: var(--ht-weight-regular, 400);
+  color: var(--sys-status-danger);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+}
+
+.arcade-marquee-title {
+  margin: var(--ht-space-xxxs) 0 0;
+  color: var(--sys-field-line);
+  font-size: clamp(28px, 9vw, 38px);
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-shadow:
+    0 0 16px color-mix(in srgb, var(--sys-field-line) 45%, transparent),
+    0 0 34px color-mix(in srgb, var(--sys-accent-on-dark) 40%, transparent);
+}
+
+/* CRT 화면 */
+.arcade-screen {
+  position: relative;
+  padding: var(--ht-space-xs);
+  background: #06120b;
+  border: 1px solid color-mix(in srgb, var(--sys-accent-on-dark) 28%, transparent);
+  border-radius: var(--sys-radius-md);
+  overflow: hidden;
+}
+
+/* 주사선 */
+.arcade-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--sys-field-line) 5%, transparent) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+.arcade-select {
+  margin: 0 0 var(--ht-space-xxs);
+  color: var(--sys-accent-on-dark);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  animation: arcade-blink 1.1s steps(1, end) infinite;
+}
+
+@keyframes arcade-blink {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  61%,
+  100% {
+    opacity: 0.25;
+  }
+}
+
+.arcade-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ht-space-xxs);
+}
+
+/* 게임 슬롯 */
+.arcade-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: calc(var(--ht-space-xxs) + 2px);
+  font-family: inherit;
+  text-align: left;
+  color: var(--sys-field-line);
+  background: color-mix(in srgb, var(--sys-accent-on-dark) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sys-accent-on-dark) 30%, transparent);
+  border-radius: var(--sys-radius-sm);
+  cursor: pointer;
+  transition:
+    background-color var(--sys-duration-fast) var(--sys-ease-standard),
+    border-color var(--sys-duration-fast) var(--sys-ease-standard),
+    transform var(--sys-duration-fast) var(--sys-ease-standard);
+}
+
+.arcade-slot:hover,
+.arcade-slot:focus-visible {
+  background: color-mix(in srgb, var(--sys-accent-on-dark) 22%, transparent);
+  border-color: var(--sys-accent-on-dark);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.arcade-slot:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.arcade-slot-no {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: var(--sys-status-danger);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.arcade-slot-mark {
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.arcade-slot-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.arcade-slot-blurb {
+  color: color-mix(in srgb, var(--sys-field-line) 62%, transparent);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* 하단 흐르는 문구 */
+.arcade-ticker {
+  margin: var(--ht-space-xs) 0 0;
+  color: color-mix(in srgb, var(--sys-field-line) 45%, transparent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 조작부 (장식) */
+.arcade-panel {
+  display: flex;
+  align-items: center;
+  gap: var(--ht-space-xxs);
+  padding: var(--ht-space-xs) var(--ht-space-xxs) var(--ht-space-xxs);
+}
+
+.arcade-stick {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #6b7280, #1f2937);
+  box-shadow: 0 2px 0 #000;
+}
+
+.arcade-btn {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 55%);
+}
+
+.arcade-btn.red {
+  background: var(--sys-status-danger);
+}
+
+.arcade-btn.yellow {
+  background: #f5c542;
+}
+
+.arcade-btn.green {
+  background: var(--sys-accent-on-dark);
+}
+
+/*
+ * 티켓 하단 사진. 카드 안에 있어 저장한 PNG 에도 함께 담긴다.
+ * 티켓의 둥근 아래 모서리를 따라가고, 위쪽은 점선 구분선과 이어진다.
+ */
+.ticket-photo {
+  display: block;
+  width: 100%;
+  height: 132px;
+  object-fit: cover;
+  object-position: center 22%;
+  border-top: 1px dashed color-mix(in srgb, var(--sys-field-line) 28%, transparent);
 }

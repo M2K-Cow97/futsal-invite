@@ -86,10 +86,13 @@ export function LectureStage({ onClose, onAccept }: StageProps) {
     <RejectShell title="훈시" subtitle="거절 심사가 종료되었습니다. 잠시 앉으세요.">
       <MediaBox src="/assets/lecture.png" alt="훈시" fallback="🧑‍🏫" />
 
-      {/* 단어를 미리 박아둔다 — 무엇에 관한 훈시인지 한눈에 보이게(릴스용). */}
-      <p className="lecture-word" aria-hidden="true">
-        FUTSAL
-      </p>
+      {/*
+        단어를 미리 박아둔다 — 무엇에 관한 훈시인지 한눈에 보이게(릴스용).
+        스크린에 투사된 것처럼 어두운 판 위에 얹고 주사선·깜빡임을 준다.
+      */}
+      <div className="lecture-screen" aria-hidden="true">
+        <p className="lecture-word">FUTSAL</p>
+      </div>
 
       <div className="lecture-board">
         {LINES.slice(0, step + 1).map((line, i) => {

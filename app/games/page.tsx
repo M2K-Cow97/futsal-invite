@@ -6,22 +6,26 @@ import { FreekickStage } from '@/components/reject/FreekickStage';
 import { KeypadStage } from '@/components/reject/KeypadStage';
 import { LeverStage } from '@/components/reject/LeverStage';
 import { PenaltyStage } from '@/components/reject/PenaltyStage';
-import { ReasonStage } from '@/components/reject/ReasonStage';
 import { SiuStage } from '@/components/reject/SiuStage';
 
 /**
- * 호날두 게임 모음.
+ * 호날두 게임 — 오락기 진입 화면.
  *
- * 초대 흐름(`/i/{slug}`)에서 분리한 화면이다. 릴스를 따로 찍기 때문에
- * 초대장 없이 바로 게임에 진입할 수 있어야 한다.
+ * 초대 흐름(`/i/{slug}`)에서 분리한 독립 URL이다. 릴스를 따로 찍기 때문에
+ * 초대장 없이 바로 게임에 진입할 수 있어야 하고, 초대 흐름에서는 이 경로로
+ * 가는 링크를 두지 않는다(초대장 여정이 길어지면 안 된다).
  *
  * 게임 자체는 거절 관문의 스테이지 컴포넌트를 그대로 재사용한다 —
  * 로직이 두 벌이 되면 한쪽만 고치는 실수가 난다.
+ *
+ * 빠진 게임: 거절 사유 심사(`ReasonStage`). 핑계를 대는 맥락이 있어야
+ * 살아나는 단계라 게임 목록에서는 숨겼다. GAMES 에 넣으면 그대로 살아난다.
  */
 
 type Game = {
   id: string;
-  emoji: string;
+  /** 오락기 슬롯에 박히는 큰 글자 */
+  mark: string;
   title: string;
   blurb: string;
   Stage: React.ComponentType<{ onGiveUp: () => void; onClose: () => void }>;
@@ -30,52 +34,45 @@ type Game = {
 const GAMES: Game[] = [
   {
     id: 'dodge',
-    emoji: '🌧️',
+    mark: '🌧',
     title: '호우 피하기',
-    blurb: '하늘에서 호날두가 쏟아진다. 10초 버티기',
+    blurb: '하늘에서 호날두가 쏟아진다',
     Stage: DodgeStage,
   },
   {
     id: 'lever',
-    emoji: '⚽',
+    mark: '⚽',
     title: '호날두를 뚫어라',
-    blurb: '폰을 기울여 공을 굴려 골라인까지',
+    blurb: '기울여서 골라인까지',
     Stage: LeverStage,
   },
   {
     id: 'siu',
-    emoji: '🗣️',
+    mark: '🗣',
     title: 'SIUUU 심사',
-    blurb: '호날두만큼 크게 외쳐보기 (마이크)',
+    blurb: '마이크로 음량 측정',
     Stage: SiuStage,
   },
   {
     id: 'penalty',
-    emoji: '🥊',
-    title: '페널티킥 공 뺏기',
-    blurb: '연타로 공을 당겨오기',
+    mark: '🥊',
+    title: '공 뺏기',
+    blurb: '연타로 공을 당겨라',
     Stage: PenaltyStage,
   },
   {
     id: 'freekick',
-    emoji: '🧤',
-    title: '무회전 프리킥 막기',
-    blurb: '형이 차는 무회전킥 막아보기',
+    mark: '🧤',
+    title: '프리킥 막기',
+    blurb: '무회전킥을 막아라',
     Stage: FreekickStage,
   },
   {
     id: 'keypad',
-    emoji: '🔒',
+    mark: '🔒',
     title: '라커룸 인증',
-    blurb: '호날두 라커룸 비밀번호 맞추기',
+    blurb: '비밀번호를 맞춰라',
     Stage: KeypadStage,
-  },
-  {
-    id: 'reason',
-    emoji: '📋',
-    title: '거절 사유 심사',
-    blurb: '핑계를 대면 심사해 준다',
-    Stage: ReasonStage,
   },
 ];
 
@@ -87,7 +84,7 @@ export default function GamesPage() {
     return (
       <main className="stage">
         <div className="card">
-          {/* onGiveUp 과 onClose 둘 다 목록으로 돌아온다 — 다음 관문이라는 개념이 없다. */}
+          {/* onGiveUp·onClose 둘 다 목록으로 돌아온다 — 다음 관문이라는 개념이 없다. */}
           <Stage onGiveUp={() => setPlaying(null)} onClose={() => setPlaying(null)} />
         </div>
       </main>
@@ -95,34 +92,45 @@ export default function GamesPage() {
   }
 
   return (
-    <main className="stage">
-      <div className="card">
-        <div className="screen">
-          <h1 className="title">호날두 게임</h1>
-          <p className="subtitle">전부 못 깬다. 그게 정상이다.</p>
+    <main className="arcade">
+      <div className="arcade-cabinet">
+        {/* 상단 마키 — 오락기 간판 */}
+        <div className="arcade-marquee">
+          <span className="arcade-marquee-sub">CR7 ARCADE</span>
+          <h1 className="arcade-marquee-title">호날두 게임</h1>
+        </div>
 
-          <div className="reason-list" style={{ maxHeight: 'none' }}>
-            {GAMES.map((g) => (
+        {/* 화면 — 게임 선택 */}
+        <div className="arcade-screen">
+          <p className="arcade-select">▸ SELECT GAME</p>
+
+          <div className="arcade-grid">
+            {GAMES.map((g, i) => (
               <button
                 key={g.id}
                 type="button"
-                className="reason-item"
+                className="arcade-slot"
                 onClick={() => setPlaying(g)}
               >
-                <span className="reason-emoji">{g.emoji}</span>
-                <span className="reason-label">
-                  {g.title}
-                  <span className="game-blurb">{g.blurb}</span>
+                <span className="arcade-slot-no">{String(i + 1).padStart(2, '0')}</span>
+                <span className="arcade-slot-mark" aria-hidden="true">
+                  {g.mark}
                 </span>
-                <span className="reason-mark">›</span>
+                <span className="arcade-slot-title">{g.title}</span>
+                <span className="arcade-slot-blurb">{g.blurb}</span>
               </button>
             ))}
           </div>
 
-          {/*
-            초대 흐름과는 연결하지 않는다 — 릴스를 따로 찍기 위한 독립 화면이고,
-            초대장 여정이 길어지면 안 된다. 이 URL 을 아는 사람만 들어온다.
-          */}
+          <p className="arcade-ticker">전부 못 깬다 · 그게 정상이다 · 전부 못 깬다 · 그게 정상이다</p>
+        </div>
+
+        {/* 하단 조작부 — 장식 */}
+        <div className="arcade-panel" aria-hidden="true">
+          <span className="arcade-stick" />
+          <span className="arcade-btn red" />
+          <span className="arcade-btn yellow" />
+          <span className="arcade-btn green" />
         </div>
       </div>
     </main>

@@ -84,6 +84,12 @@ export function TicketScreen({ ticket }: { ticket: Ticket }) {
             <dd>{ticket.guestName}</dd>
           </div>
         </dl>
+
+        {/*
+          티켓 카드 안에 두면 저장한 PNG 에도 함께 담긴다 — 공유되는 게 목적이라
+          바깥이 아니라 안쪽이 맞다. html2canvas 가 캡처하는 영역(ticketRef) 내부다.
+        */}
+        <img className="ticket-photo" src="/assets/messi.jpeg" alt="" aria-hidden="true" />
       </div>
 
       {error && <p className="warn">{error}</p>}
