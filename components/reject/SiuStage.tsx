@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { detectMic, startMic, type MicMeter, type MicSupport } from '@/lib/mic';
 import { buzz } from '@/lib/tilt';
 import { RejectShell } from './RejectShell';
+import { StageFooter } from './StageFooter';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
@@ -218,19 +219,7 @@ export function SiuStage({ onGiveUp, onClose }: StageProps) {
         </button>
       )}
 
-      <div className="reject-footer modal-actions">
-        <button type="button" className="btn btn-ghost" onClick={onClose}>
-          그냥 할래
-        </button>
-        {/*
-          이 단계는 마이크라는 외부 조건에 의존한다 — 권한이 없거나 인앱 브라우저면
-          측정 자체가 무의미하다. 그래서 다른 단계와 달리 실패 횟수를 요구하지 않고
-          **항상** 넘어갈 수 있게 둔다. 갇히는 건 재미가 아니라 짜증이다.
-        */}
-        <button type="button" className="btn btn-accent" onClick={onGiveUp}>
-          다른 방법으로 거절
-        </button>
-      </div>
+      <StageFooter onClose={onClose} onGiveUp={onGiveUp} canGiveUp />
     </RejectShell>
   );
 }

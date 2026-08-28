@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { RejectShell } from './RejectShell';
+import { StageFooter } from './StageFooter';
 import { REASONS, type Reason } from './reasons';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
@@ -211,20 +212,13 @@ export function ReasonStage({ onGiveUp, onClose }: StageProps) {
             뒤로
           </button>
         )}
-        <button type="button" className="btn btn-ghost" onClick={onClose}>
-          그냥 할래
-        </button>
       </div>
 
-      {rejected.length >= GIVE_UP_AFTER && phase !== 'reviewing' && (
-        <button
-          type="button"
-          className="btn btn-primary btn-block stage-escape"
-          onClick={onGiveUp}
-        >
-          다른 방법으로 거절
-        </button>
-      )}
+      <StageFooter
+        onClose={onClose}
+        onGiveUp={onGiveUp}
+        canGiveUp={rejected.length >= GIVE_UP_AFTER && phase !== 'reviewing'}
+      />
     </RejectShell>
   );
 }

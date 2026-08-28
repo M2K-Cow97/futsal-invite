@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { MediaBox } from '../MediaBox';
 import { RejectShell } from './RejectShell';
+import { StageFooter } from './StageFooter';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
@@ -93,16 +94,11 @@ export function KeypadStage({ onGiveUp, onClose }: StageProps) {
       {error && <p className="lever-msg bad">{error} (시도 {attempts}회)</p>}
       <p className="lever-hint">힌트: {hint}</p>
 
-      <div className="modal-actions">
-        <button type="button" className="btn btn-ghost" onClick={onClose}>
-          그냥 할래
-        </button>
-        {attempts >= GIVE_UP_AFTER && (
-          <button type="button" className="btn btn-primary" onClick={onGiveUp}>
-            다른 방법으로 거절
-          </button>
-        )}
-      </div>
+      <StageFooter
+        onClose={onClose}
+        onGiveUp={onGiveUp}
+        canGiveUp={attempts >= GIVE_UP_AFTER}
+      />
     </RejectShell>
   );
 }

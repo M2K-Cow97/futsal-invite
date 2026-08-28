@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ArcadeContext } from '@/components/reject/ArcadeContext';
 import { DodgeStage } from '@/components/reject/DodgeStage';
 import { FreekickStage } from '@/components/reject/FreekickStage';
 import { KeypadStage } from '@/components/reject/KeypadStage';
@@ -82,12 +83,15 @@ export default function GamesPage() {
   if (playing) {
     const { Stage } = playing;
     return (
-      <main className="stage">
-        <div className="card">
-          {/* onGiveUp·onClose 둘 다 목록으로 돌아온다 — 다음 관문이라는 개념이 없다. */}
-          <Stage onGiveUp={() => setPlaying(null)} onClose={() => setPlaying(null)} />
-        </div>
-      </main>
+      /* ArcadeContext 로 맥락을 알려주면 스테이지 하단이 "게임 닫기" 하나로 바뀐다. */
+      <ArcadeContext.Provider value={true}>
+        <main className="stage">
+          <div className="card">
+            {/* onGiveUp·onClose 둘 다 목록으로 돌아온다 — 다음 관문이라는 개념이 없다. */}
+            <Stage onGiveUp={() => setPlaying(null)} onClose={() => setPlaying(null)} />
+          </div>
+        </main>
+      </ArcadeContext.Provider>
     );
   }
 

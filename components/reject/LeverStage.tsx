@@ -9,6 +9,7 @@ import {
   type TiltSupport,
 } from '@/lib/tilt';
 import { RejectShell } from './RejectShell';
+import { StageFooter } from './StageFooter';
 import type { StageProps } from './types';
 import { useTimers } from './useTimers';
 
@@ -310,16 +311,7 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
         </button>
       )}
 
-      <div className="reject-footer modal-actions">
-        <button type="button" className="btn btn-ghost" onClick={onClose}>
-          그냥 할래
-        </button>
-        {attempts >= GIVE_UP_AFTER && (
-          <button type="button" className="btn btn-accent" onClick={onGiveUp}>
-            다른 방법으로 거절
-          </button>
-        )}
-      </div>
+      <StageFooter onClose={onClose} onGiveUp={onGiveUp} canGiveUp={attempts >= GIVE_UP_AFTER} />
     </RejectShell>
   );
 }
