@@ -13,6 +13,10 @@ export function SiuuuScreen({ onNext }: { onNext: () => void }) {
       <MediaBox src="/assets/you.gif" alt="SIU 셀러브레이션" fallback="🕺" />
 
       <h2 className="title siu-title">나도 좋siuuuuu</h2>
+
+      {/* 수락하면 메시도 함께 나온다 — 호날두 일색이던 흐름의 마무리. */}
+      <MediaBox src="/assets/messi.jpeg" alt="메시" fallback="🐐" />
+
       <p className="subtitle">경기는 이미 잡혀 있어. 참석만 확정하면 돼!</p>
 
       <button type="button" className="btn btn-accent btn-block" onClick={onNext}>

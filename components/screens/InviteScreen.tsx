@@ -251,7 +251,16 @@ export function InviteScreen({
         )}
       </div>
 
-      {gauntlet && <RejectGauntlet onClose={() => setGauntlet(false)} />}
+      {gauntlet && (
+        <RejectGauntlet
+          onClose={() => setGauntlet(false)}
+          /* 훈시의 "…네" 는 초대 화면으로 되돌리지 않고 곧바로 수락시킨다. */
+          onAccept={() => {
+            setGauntlet(false);
+            onAccept();
+          }}
+        />
+      )}
     </div>
   );
 }

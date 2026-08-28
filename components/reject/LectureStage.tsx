@@ -15,7 +15,7 @@ import type { StageProps } from './types';
  */
 const LINES: { text: string; big?: boolean; voice?: string }[] = [
   { text: '단어 알지?', voice: '/assets/vocab.mp3' },
-  { text: 'FUTSAL', big: true },
+  // 'FUTSAL' 은 화면 상단에 미리 박혀 있다(.lecture-word). 줄로 또 내보내면 중복이다.
   { text: '오늘 풋살장 나가서 풋살해.' },
   { text: '나는 오늘 그거, 볼 거야.', voice: '/assets/iwilllsee.mp3' },
 ];
@@ -43,7 +43,7 @@ const BEAT_MS = 900;
  *
  * 다른 스테이지와 달리 onGiveUp 이 없다. 이 다음은 없다.
  */
-export function LectureStage({ onClose }: StageProps) {
+export function LectureStage({ onClose, onAccept }: StageProps) {
   const [step, setStep] = useState(0);
   /** 한 박자 지나기 전에는 넘기지 못한다 — 뜸이 이 연출의 전부다. */
   const [ready, setReady] = useState(false);
@@ -74,7 +74,8 @@ export function LectureStage({ onClose }: StageProps) {
   function next() {
     if (!ready) return;
     if (last) {
-      onClose();
+      // "…네" 는 초대 화면으로 되돌리지 않고 곧바로 수락으로 넘긴다.
+      (onAccept ?? onClose)();
       return;
     }
     buzz(14);
@@ -82,8 +83,13 @@ export function LectureStage({ onClose }: StageProps) {
   }
 
   return (
-    <RejectShell title="FUTSAL" subtitle="거절 심사가 종료되었습니다. 잠시 앉으세요.">
+    <RejectShell title="훈시" subtitle="거절 심사가 종료되었습니다. 잠시 앉으세요.">
       <MediaBox src="/assets/lecture.png" alt="훈시" fallback="🧑‍🏫" />
+
+      {/* 단어를 미리 박아둔다 — 무엇에 관한 훈시인지 한눈에 보이게(릴스용). */}
+      <p className="lecture-word" aria-hidden="true">
+        FUTSAL
+      </p>
 
       <div className="lecture-board">
         {LINES.slice(0, step + 1).map((line, i) => {

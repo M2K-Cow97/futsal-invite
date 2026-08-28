@@ -14,6 +14,11 @@ export type StageProps = {
   onGiveUp: () => void;
   /** 관문 전체를 닫는다 (= 거절 실패, invite 화면으로 복귀). */
   onClose: () => void;
+  /**
+   * 관문을 닫고 **곧바로 수락 처리**한다. 훈시에서 "…네" 를 누르면
+   * 초대 화면으로 되돌리지 않고 바로 다음 화면으로 넘어간다(릴스용 단축).
+   */
+  onAccept?: () => void;
 };
 
 export type StageId =

@@ -1935,3 +1935,29 @@ body {
   object-fit: cover;
   border-radius: 50%;
 }
+
+/*
+ * 훈시 화면에 미리 박아두는 단어. 무엇에 관한 훈시인지 한눈에 보이게 한다(릴스용).
+ * .lecture-line.big 과 같은 크기감을 쓰되, 등장 애니메이션 없이 처음부터 자리를 잡는다.
+ */
+.lecture-word {
+  margin: var(--ht-space-xs) 0 0;
+  font-size: clamp(40px, 19vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  font-weight: 900;
+  /* 어두운 보드가 아니라 밝은 카드 위에 놓이므로 본문 색을 쓴다. */
+  color: var(--app-ink);
+  text-align: center;
+  text-transform: uppercase;
+  padding: 2px 0;
+}
+
+/* 게임 목록(/games) — 제목 아래 한 줄 설명 */
+.game-blurb {
+  display: block;
+  margin-top: 2px;
+  color: var(--app-ink-faint);
+  font-size: var(--sys-label-tertiary-size);
+  font-weight: var(--ht-weight-regular, 400);
+}
