@@ -109,11 +109,11 @@ body {
 
   /* 제목 아래 여백을 줄인다 — 티켓이 주인공이다. */
   .screen:has(.ticket) .subtitle {
-    margin-bottom: var(--ht-space-xs);
+    margin-bottom: var(--ht-space-xxs);
   }
 
   .ticket-photo {
-    height: 96px;
+    height: 104px;
   }
 }
 
@@ -776,8 +776,13 @@ body {
 /* ─── ⑤ ticket ─────────────────────────────────────── */
 
 /* Card/* — 다크 표면 위 티켓. surface-inverse 를 쓴다. */
+/* 티켓 화면은 카드가 주인공이다. 제목·부제목과의 간격을 좁힌다. */
+.screen:has(.ticket) .subtitle {
+  margin-bottom: var(--ht-space-xxs);
+}
+
 .ticket {
-  margin: var(--ht-space-xs) 0;
+  margin: 0 0 var(--ht-space-xs);
   background: var(--sys-surface-inverse);
   border-radius: var(--sys-radius-lg);
   overflow: hidden;
@@ -810,8 +815,9 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  /* 한 화면에 담기 위해 12px → 9px. 5행이라 30px 가 줄어든다. */
-  padding: 9px 0;
+  /* 한 화면에 담기 위해 12px → 7px. 5행이라 50px 가 줄어들고,
+     그만큼을 사진 높이로 돌린다. */
+  padding: 7px 0;
   border-bottom: 1px dashed var(--sys-on-inverse-border);
 }
 
@@ -2334,12 +2340,12 @@ body {
   display: block;
   width: 100%;
   /*
-   * 한 화면(iPhone SE 667px)에 들어와야 해서 높이를 묶는다.
-   * contain 은 전체를 보이지만 236px 을 먹어 화면을 넘겼다.
-   * cover + 상단 정렬로 두 사람 얼굴은 남기고 아래 여백만 잘라낸다.
+   * 잘라내지 않고 축소한다 — cover 로 자르면 두 사람이 프레임 밖으로 밀린다.
+   * contain 이라 좌우에 여백이 생기지만, 티켓 배경과 같은 색이어서 눈에 띄지 않는다.
+   * 폭을 줄이는 방식은 오히려 세로가 커져(비율 유지) 화면을 넘겼다.
    */
-  height: 116px;
-  object-fit: cover;
-  object-position: center 18%;
+  height: 132px;
+  object-fit: contain;
+  background: var(--sys-surface-inverse);
   border-top: 1px dashed color-mix(in srgb, var(--sys-field-line) 28%, transparent);
 }
