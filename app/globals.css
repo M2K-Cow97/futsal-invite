@@ -778,7 +778,7 @@ body {
 /* Card/* — 다크 표면 위 티켓. surface-inverse 를 쓴다. */
 /* 티켓 화면은 카드가 주인공이다. 제목·부제목과의 간격을 좁힌다. */
 .screen:has(.ticket) .subtitle {
-  margin-bottom: var(--ht-space-xxs);
+  margin-bottom: var(--ht-space-xs);
 }
 
 .ticket {
@@ -2346,7 +2346,8 @@ body {
   height: 132px;
   width: auto;
   max-width: 100%;
-  margin: 0 auto var(--ht-space-xs);
+  /* 사진이 티켓 위에 있으므로 아래쪽에 간격을 준다. */
+  margin: 0 auto var(--ht-space-xxs);
   object-fit: contain;
   border-radius: var(--sys-radius-md);
 }

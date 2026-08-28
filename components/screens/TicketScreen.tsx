@@ -57,6 +57,13 @@ export function TicketScreen({ ticket }: { ticket: Ticket }) {
       <h2 className="title">경기 확정!</h2>
       <p className="subtitle">{ticket.hostName}이(가) 기다리고 있어</p>
 
+      {/*
+        사진은 티켓 카드 **밖 위쪽**에 둔다. 카드 안에 넣으면 폭에 맞춰
+        늘어나거나 잘려서 어색했다. 캡처 영역(ticketRef) 밖이라 저장한
+        PNG 에는 티켓만 담기고, 사진은 화면에서만 보인다.
+      */}
+      <img className="ticket-photo" src="/assets/messi.jpeg" alt="" aria-hidden="true" />
+
       <div className="ticket" ref={ticketRef}>
         <div className="ticket-head">
           <span>FUTSAL MATCH</span>
@@ -85,13 +92,6 @@ export function TicketScreen({ ticket }: { ticket: Ticket }) {
           </div>
         </dl>
       </div>
-
-      {/*
-        사진은 티켓 카드 **밖**에 둔다. 안에 넣으면 폭에 맞춰 늘어나거나
-        잘려서 어색했다. 캡처 영역(ticketRef) 밖이라 저장한 PNG 에는
-        티켓만 담기고, 사진은 화면에서만 보인다.
-      */}
-      <img className="ticket-photo" src="/assets/messi.jpeg" alt="" aria-hidden="true" />
 
       {error && <p className="warn">{error}</p>}
 
