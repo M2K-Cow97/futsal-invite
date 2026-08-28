@@ -172,6 +172,7 @@ export function DodgeStage({ onGiveUp, onClose }: StageProps) {
     <RejectShell
       title="호우 피하기"
       subtitle="하늘에서 호날두가 쏟아집니다. 10초만 버티면 거절이 접수됩니다."
+      arcadeSubtitle="하늘에서 호날두가 쏟아집니다. 10초만 버텨보세요."
     >
       <div
         className="dodge-field"

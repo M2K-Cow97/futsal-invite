@@ -253,6 +253,7 @@ export function LeverStage({ onGiveUp, onClose }: StageProps) {
     <RejectShell
       title="호날두를 뚫어라"
       subtitle="공을 굴려 오른쪽 골라인까지 가면 거절이 접수됩니다."
+      arcadeSubtitle="공을 굴려 오른쪽 골라인까지 가보세요."
     >
       <div
         className="dribble-field"

@@ -177,6 +177,7 @@ export function SiuStage({ onGiveUp, onClose }: StageProps) {
     <RejectShell
       title="SIUUU 심사"
       subtitle="호날두만큼 크게 SIUUU 를 외치면 거절이 승인됩니다."
+      arcadeSubtitle="호날두만큼 크게 SIUUU 를 외쳐보세요."
     >
       <div className="siu-meter" onPointerDown={tap}>
         {/* 호날두 기준선 — 닿을 수 없다 */}

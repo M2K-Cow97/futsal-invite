@@ -57,6 +57,7 @@ export function KeypadStage({ onGiveUp, onClose }: StageProps) {
     <RejectShell
       title="라커룸 인증"
       subtitle="거절은 호날두 본인의 동의가 필요합니다. 라커룸 비밀번호를 입력하세요."
+      arcadeSubtitle="호날두 라커룸의 비밀번호를 맞혀보세요."
     >
       <MediaBox src="/assets/ronaldo-stern.gif" alt="라커룸을 지키는 호날두" fallback="🐐" />
 

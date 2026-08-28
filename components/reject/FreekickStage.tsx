@@ -99,6 +99,7 @@ export function FreekickStage({ onGiveUp, onClose }: StageProps) {
     <RejectShell
       title="무회전 프리킥 막기"
       subtitle="형이 프리킥을 막아보라고 합니다. 한 번이라도 막으면 거절이 접수됩니다."
+      arcadeSubtitle="형이 프리킥을 막아보라고 합니다. 한 번이라도 막아보세요."
     >
       <div className="gk-goal">
         {SPOTS.map((s) => {

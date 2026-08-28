@@ -147,6 +147,7 @@ export function PenaltyStage({ onGiveUp, onClose }: StageProps) {
     <RejectShell
       title="페널티킥 공 뺏기"
       subtitle="호날두가 또 키커를 하겠다고 합니다. 공을 뺏어오면 거절이 접수됩니다."
+      arcadeSubtitle="호날두가 또 키커를 하겠다고 합니다. 공을 뺏어보세요."
     >
       <div className="tug-scene">
         <span className="tug-me" aria-hidden="true">

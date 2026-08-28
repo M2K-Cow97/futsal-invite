@@ -90,6 +90,33 @@ body {
   min-height: 400px;
 }
 
+/*
+ * 티켓 화면은 내용이 이미 길다. 짧은 기기(iPhone SE 667px)에서 한 화면에
+ * 담으려면 최소 높이 강제와 큰 패딩이 오히려 방해가 된다.
+ */
+@media (max-height: 740px) {
+  .card > .screen:has(.ticket) {
+    min-height: 0;
+  }
+
+  .card:has(.ticket) {
+    padding: var(--ht-space-s) var(--ht-space-xs);
+  }
+
+  .stage:has(.ticket) {
+    padding: var(--ht-space-xxs) var(--ht-space-xs);
+  }
+
+  /* 제목 아래 여백을 줄인다 — 티켓이 주인공이다. */
+  .screen:has(.ticket) .subtitle {
+    margin-bottom: var(--ht-space-xs);
+  }
+
+  .ticket-photo {
+    height: 96px;
+  }
+}
+
 .screen {
   animation: screen-in var(--sys-duration-slow) var(--sys-ease-standard);
 }
@@ -783,7 +810,8 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 0;
+  /* 한 화면에 담기 위해 12px → 9px. 5행이라 30px 가 줄어든다. */
+  padding: 9px 0;
   border-bottom: 1px dashed var(--sys-on-inverse-border);
 }
 
@@ -2305,9 +2333,13 @@ body {
 .ticket-photo {
   display: block;
   width: 100%;
-  /* cover 로 채우면 좌우가 잘려 두 사람 얼굴이 밀려난다.
-     contain 으로 전체를 보이고, 남는 여백은 티켓 배경색이 메운다. */
-  height: auto;
-  object-fit: contain;
+  /*
+   * 한 화면(iPhone SE 667px)에 들어와야 해서 높이를 묶는다.
+   * contain 은 전체를 보이지만 236px 을 먹어 화면을 넘겼다.
+   * cover + 상단 정렬로 두 사람 얼굴은 남기고 아래 여백만 잘라낸다.
+   */
+  height: 116px;
+  object-fit: cover;
+  object-position: center 18%;
   border-top: 1px dashed color-mix(in srgb, var(--sys-field-line) 28%, transparent);
 }
