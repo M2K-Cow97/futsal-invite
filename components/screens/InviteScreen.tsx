@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { formatMatchDate } from '@/lib/format';
-import { playSfx } from '@/lib/sound';
+import { playSfx, unlockAudio } from '@/lib/sound';
 import { RejectGauntlet } from '../reject/RejectGauntlet';
 
 const FLEE_LIMIT = 3;
@@ -60,6 +60,14 @@ export function InviteScreen({
   const [fleeCount, setFleeCount] = useState(0);
   const [kick, setKick] = useState<{ x: number; y: number; id: number } | null>(null);
   const [gauntlet, setGauntlet] = useState(false);
+
+  /*
+   * iOS 는 touchmove 를 사용자 제스처로 인정하지 않는다. 근접 감지로 도망가면
+   * 소리가 차단되므로, 페이지 첫 터치에서 미리 잠금을 풀어 둔다.
+   */
+  useEffect(() => {
+    unlockAudio(['/assets/nono.mp4']);
+  }, []);
 
   const flee = useCallback(() => {
     // 도망 단계를 지나면 더는 피하지 않고 거절 관문이 막아선다.

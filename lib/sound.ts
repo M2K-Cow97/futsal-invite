@@ -41,3 +41,51 @@ export function playSfx(src: string, volume = 0.7): void {
     /* Audio 생성 자체가 실패하는 환경. 무시한다. */
   }
 }
+
+/**
+ * 오디오 잠금 해제.
+ *
+ * iOS·안드로이드는 **사용자 제스처(tap·click) 안에서 시작한 재생**만 허용한다.
+ * `touchmove` 는 제스처로 쳐주지 않아서, "싫어." 가 손가락이 닿기 전에
+ * 도망가는 경우(근접 감지) 소리가 차단된다.
+ *
+ * 그래서 페이지의 **첫 터치**에서 볼륨 0으로 한 번 재생해 잠금을 풀어 둔다.
+ * 한 번 풀리면 같은 엘리먼트는 이후 어떤 시점에도 소리를 낼 수 있다.
+ *
+ * 미리 로드해두는 효과도 있어 첫 재생이 끊기지 않는다.
+ */
+export function unlockAudio(srcs: string[]): void {
+  if (typeof window === 'undefined') return;
+
+  function unlock() {
+    for (const src of srcs) {
+      try {
+        let audio = cache.get(src);
+        if (!audio) {
+          audio = new Audio(src);
+          cache.set(src, audio);
+        }
+        audio.muted = true;
+        void audio
+          .play()
+          .then(() => {
+            audio!.pause();
+            audio!.currentTime = 0;
+            audio!.muted = false;
+          })
+          .catch(() => {
+            /* 그래도 막히면 어쩔 수 없다. 무음으로 진행한다. */
+            audio!.muted = false;
+          });
+      } catch {
+        /* 무시한다. */
+      }
+    }
+    window.removeEventListener('touchstart', unlock);
+    window.removeEventListener('pointerdown', unlock);
+  }
+
+  // 첫 터치 한 번만. once 옵션은 두 리스너를 각각 소모하므로 직접 정리한다.
+  window.addEventListener('touchstart', unlock, { passive: true });
+  window.addEventListener('pointerdown', unlock, { passive: true });
+}
