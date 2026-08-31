@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Position } from '@/lib/schema';
+import { playSfx } from '@/lib/sound';
 import { MediaBox } from '../MediaBox';
 
 const OPTIONS: { key: Position; name: string; abbr: string }[] = [
@@ -67,6 +68,7 @@ export function PositionScreen({
               onClick={() => {
                 if (opt.key === 'FW') {
                   // 확정하지 않는다. 경고만 시작한다.
+                  playSfx('/assets/nono.mp4');
                   setFw(1);
                   return;
                 }
@@ -114,7 +116,11 @@ export function PositionScreen({
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() => setFw((s) => ((s ?? 1) + 1) as FwStep)}
+                  onClick={() => {
+                    // 밀어붙일 때마다 "노노" 로 막아선다.
+                    playSfx('/assets/nono.mp4');
+                    setFw((s) => ((s ?? 1) + 1) as FwStep);
+                  }}
                 >
                   그래도 할래
                 </button>

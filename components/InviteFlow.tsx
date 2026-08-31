@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { playSound } from '@/lib/sound';
+import { playSfx, playSound } from '@/lib/sound';
 import type { Position } from '@/lib/schema';
 import { InviteScreen } from './screens/InviteScreen';
 import { MatchdayScreen, type MatchInfo } from './screens/MatchdayScreen';
@@ -72,6 +72,12 @@ export function InviteFlow({
 
       setTicket((await res.json()) as Ticket);
       setScreen('ticket');
+
+      /*
+       * 경기 확정 축하음. 포지션 클릭(사용자 제스처)에서 시작된 흐름이라
+       * 대부분의 브라우저가 await 뒤에도 재생을 허용한다. 막히면 무음이다.
+       */
+      playSfx('/assets/siu_full.mp3', 0.85);
     } catch {
       setError('네트워크 오류예요. 다시 시도해 주세요.');
     } finally {

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { formatMatchDate } from '@/lib/format';
+import { playSfx } from '@/lib/sound';
 import { RejectGauntlet } from '../reject/RejectGauntlet';
 
 const FLEE_LIMIT = 3;
@@ -66,6 +67,9 @@ export function InviteScreen({
     // 모바일에서 touchstart → click 이 연달아 오는 경우를 막는다.
     if (fleeingRef.current) return;
     fleeingRef.current = true;
+
+    // 도망갈 때마다 "노노" — 연속 회피에도 겹치지 않게 되감아 재생한다.
+    playSfx('/assets/nono.mp4');
 
     const arena = arenaRef.current;
     const btn = noBtnRef.current;
